@@ -1,5 +1,7 @@
 //*****************************************************************************
 //
+// Josés modified script program.
+//
 // Built from hello.c - Simple hello world example.
 //
 // Copyright (c) 2006-2011 Texas Instruments Incorporated.  All rights reserved.

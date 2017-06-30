@@ -1,14 +1,13 @@
 //*****************************************************************************
-// project1a-2017-single-function.c
+// project1a-2017-external-file.c
 //
 // Conor Sayres and José Sánchez-Gallego
 //
-// Modification of project1a-2017-pointer-reference.c in which the previous functions
-// f1Data and f2Clear are replaced with a single function dataLoop.
-// dataLoop calls the delayedWrite function, which accepts a character to display
-// and a delay value, as outlined in lab 1, heading:
-// Building, Editing, and Running a Program point #10.  The user may specify
+// Modification of project1a-2017-single-function.c in which the previous functions
+// delayedWrite and delay are broken out into a separate file: delayedWrite.c. As outlined in
+// lab 1, heading: Building, Editing, and Running a Program point #11.  The user may specify
 // the delay time(s) as a command line argument.
+//
 //
 //*****************************************************************************
 
@@ -20,7 +19,7 @@
 // prototypes for the delay functions called in main.
 void delay(unsigned long aValue);
 void dataLoop(unsigned long *delay1, int showNumber);
-void delayedWrite(unsigned long *delayValue, char *data);
+extern void delayedWrite(unsigned long *delayValue, char *data);
 
 //*****************************************************************************
 //
@@ -79,30 +78,6 @@ int main(int argc, char *argv[])
 
 }
 //*****************************************************************************
-// Definition of the delay function, a software delay.
-// Implemented by a long nested loop that doesn't do
-// any real work.
-// inputs: an unsigned long
-//      a scaling factor for length of delay
-// returns: void
-//*****************************************************************************
-void delay(unsigned long aValue)
-{
-    // outer loop variable initialization
-    // overwritten by the aValue input to the function
-    volatile unsigned long i = 0;
-
-    // inner loop variable initialization
-    volatile unsigned int j = 0;
-
-    for (i = aValue; i > 0; i--)
-    {
-        for (j = 0; j < 100000; j++);
-    }
-
-    return;
-}
-//*****************************************************************************
 // Prints numbers or spaces to stdout with a delay between each print
 // inputs: delay1 - an unsigned long, passed by pointer reference, a scaling
 //                     factor for length of delay between printed numbers
@@ -133,16 +108,4 @@ void dataLoop(unsigned long *delayValue, int showNumber)
       //  print a carridge return, bringing us back to the beginning of the output line
       printf("%c", 0x0d);
       fflush(stdout);
-}
-
-//*****************************************************************************
-// Write something to stdout with a delay
-// inputs: delay - an unsigned long, passed by pointer reference
-//         data - character(s) to be printed
-//*****************************************************************************
-void delayedWrite(unsigned long *delayValue, char *data)
-{
-        printf("%s ", data);  // print the data to the user
-        fflush(stdout);
-        delay(*delayValue);   // delay so we can read the display
 }
