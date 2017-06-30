@@ -1,10 +1,2 @@
-**
-
-!*/
-!**/*.c
-!**/*.pdf
-!**/*.h
-
-!.gitignore
-
-**/Report/
+**/Report
+**/build
