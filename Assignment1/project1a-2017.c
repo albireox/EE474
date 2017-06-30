@@ -24,85 +24,80 @@
 
 #include <stdio.h>
 
-#define DELAY_FACTOR 100000
 #define TRUE 1
 #define FALSE 0
 
-// Delays for writing and clearing the line.
-unsigned long write_delay = 1000;
-unsigned long clear_delay = 100;
 
-// Function prototypes
 void delay(unsigned long aValue);
-void fData(char* myPtr, unsigned long *delay);
-
 
 //*****************************************************************************
 //
-// Print "9 8 7 6 5 4 3 2 1 0"
+// Print "0123456789" 
 //
 //*****************************************************************************
-
 int main(void)
 {
 
-    // Define some local variables
-    char space = ' ';
+    //  define some local variables
+    volatile int i = 0;
+    int k = 15;
 
-    // Print the digits 9 8 7 6 5 4 3 2 1 0
-    // Then clear them.
+    //
+    // The value if i is:
+    //
+    printf("The value of i is: %d\n", i);
+	fflush(stdout);
+
+    //
+    //  print the digits 9 8 7 6 5 4 3 2 1 0
     while(TRUE)
     {
+      //  working C style string
+      char myData[3];
 
-        // Sends the NULL pointer to indicate that we want to print the
-        // digit in the loop.
-        fData(NULL, &write_delay);
+      for (i = 9; i >=0; i--)
+      {
+        myData[0] = i + '0';        //  convert the int i to ascii
+        myData[1] = '\0';           //  terminate the string
+        printf("%s ", myData);
+		fflush(stdout);
 
-        // Sends the space character.
-        fData(&space, &clear_delay);
+        delay(1000);                //  delay so we can read the display
+      }
 
+      printf("%c", 0x0d);           //  print a carridge return
+	  fflush(stdout);
+      myData[0] = ' ';              //  print a space
+      myData[1] = '\0';
+
+      //  clear the line
+
+      for (i = 0; i < 10; i++)
+      {
+        printf("%s ", myData);
+		fflush(stdout);
+
+        delay(1000);
+      }
+
+      printf("%c", 0x0d);           //  print a carridge return
+	  fflush(stdout);
+      myData[0] = ' ';              //  print a space
+      myData[1] = '\0';
     }
 
 }
-
-
 //  software delay
 void delay(unsigned long aValue)
 {
-    volatile unsigned long i = 0;  // Uses volatiles to prevent the compiler
-    volatile unsigned int j = 0;   // to ignore this loop.
+    volatile unsigned long i = 0;
+
+    volatile unsigned int j = 0;
 
     for (i = aValue; i > 0; i--)
     {
-        for (j = 0; j < DELAY_FACTOR; j++);
+        for (j = 0; j < 100000; j++);
     }
 
     return;
-}
-
-
-void fData(char* myChar, unsigned long *myDelay)
-{
-
-    char myData[2];
-
-    for (int i = 9; i >= 0; i--)
-    {
-        if (!myChar) {            // If myChar is the NULL pointer, writes i
-            myData[0] = i + '0';
-        } else {                  // Otherwise prints myChar.
-            myData[0] = *myChar;
-        }
-
-        myData[1] = '\0';       // Adds a string terminator
-        printf("%s ", myData);  // Prints the string
-        fflush(stdout);         // Flushes the standard ouput now
-
-        delay(*myDelay);        // Waits until the next iteration of the loop
-
-    }
-
-    printf("%c", 0x0d);           //  print a carridge return
-    fflush(stdout);
-
 }
