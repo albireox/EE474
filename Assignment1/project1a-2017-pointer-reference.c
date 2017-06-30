@@ -1,11 +1,11 @@
 //*****************************************************************************
-// project1a-2017-function-loops.c
+// project1a-2017-pointer-reference.c
 //
 // Conor Sayres and José Sánchez-Gallego
 //
-// Modification of project1a-2017-param-delay.c in which each for loop is replaced
-// by a function for writing and clearing the data, as outlined in lab 1, heading:
-// Building, Editing, and Running a Program point #8.  The user may specify
+// Modification of project1a-2017-function-loops.c in which each the delay value is passed to
+// the delay function as a pointer reference, as outlined in lab 1, heading:
+// Building, Editing, and Running a Program point #9.  The user may specify
 // the delay time(s) as a command line argument.
 //
 //*****************************************************************************
@@ -15,10 +15,10 @@
 // Define TRUE as 1, used in infinite while loop, aids readability
 #define TRUE 1
 
-// prototype for the delay functions called in main.
+// prototypes for the delay functions called in main.
 void delay(unsigned long aValue);
-void f1Data(unsigned long delay1);
-void f2Clear(unsigned long delay2);
+void f1Data(unsigned long *delay1);
+void f2Clear(unsigned long *delay2);
 
 //*****************************************************************************
 //
@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
     //  begin infinite loop
     while(TRUE)
     {
-        f1Data(delayValuePrint); // write numbers
-        f2Clear(delayValueClear); // clear numbers
+        f1Data(&delayValuePrint); // write numbers
+        f2Clear(&delayValueClear); // clear numbers
     }
 
 }
@@ -102,10 +102,10 @@ void delay(unsigned long aValue)
 }
 //*****************************************************************************
 // Prints numbers to stdout with a delay between each print
-// inputs: delay1 - an unsigned long
+// inputs: delay1 - an unsigned long, passed by pointer reference
 //      a scaling factor for length of delay between printed numbers
 //*****************************************************************************
-void f1Data(unsigned long delay1)
+void f1Data(unsigned long *delay1)
 {
       //  working C style string
       // this char array is re-populated
@@ -122,7 +122,7 @@ void f1Data(unsigned long delay1)
         printf("%s ", myData);      //  add the current value of i to the stdout buffer
         fflush(stdout);             //  flush the buffer so the value is displayed to the user
 
-        delay(delay1);                //  delay so we can read the display
+        delay(*delay1);                //  delay so we can read the display
       }
 
       //  print a carridge return, bringing us back to the beginning of the output line
@@ -131,10 +131,10 @@ void f1Data(unsigned long delay1)
 }
 //*****************************************************************************
 // Clears numbers in stdout with a delay between each clear
-// inputs: delay2 - an unsigned long
+// inputs: delay2 - an unsigned long, passed by pointer reference
 //      a scaling factor for length of delay between clearing numbers
 //*****************************************************************************
-void f2Clear(unsigned long delay2)
+void f2Clear(unsigned long *delay2)
 {
       //  begin the loop to clear the line
       // this overwrites each number that was printed
@@ -144,7 +144,7 @@ void f2Clear(unsigned long delay2)
         printf("%s ", " \0");  // add the space to the stdout buffer
         fflush(stdout);         // show the user
 
-        delay(delay2);            // delay so we can read the display
+        delay(*delay2);            // delay so we can read the display
       }
 
       //  print a carridge return, bringing us back to the beginning of the output line
