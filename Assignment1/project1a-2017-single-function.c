@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     // this will be the default if not overridden by the user
     unsigned long delayValuePrint = 1000;
     unsigned long delayValueClear = 1000;
-    // don't allow more than a single argument to be passed to this program
+    // don't allow more than 2 arguments to be passed to this program
     if (argc > 3){
         printf("Too many arguments!  This program accepts 2, 1 or 0 arguments of type unsigned int. \n");
         printf("Argument 1 specifies delay in printing numbers. \n");
@@ -104,8 +104,8 @@ void delay(unsigned long aValue)
 }
 //*****************************************************************************
 // Prints numbers or spaces to stdout with a delay between each print
-// inputs: delay1 - an unsigned long, passed by pointer reference
-//      a scaling factor for length of delay between printed numbers
+// inputs: delay1 - an unsigned long, passed by pointer reference, a scaling
+//                     factor for length of delay between printed numbers
 //         doClear - boolean flag.  If 1 clear the number, else print the integer.
 // calls: delayedWrite
 //*****************************************************************************
@@ -119,11 +119,13 @@ void dataLoop(unsigned long *delayValue, int doClear)
       for (int i = 9; i >=0; i--)
       {
         if (1 == doClear){
+            // populate myData with space
             myData[0] = ' ';
             myData[1] = '\0';
         }
         else
         {
+            // populate myData with the integer
             myData[0] = i + '0';        //  convert the int i to ascii
             myData[1] = '\0';           //  terminate the string
         }
@@ -143,7 +145,7 @@ void dataLoop(unsigned long *delayValue, int doClear)
 //*****************************************************************************
 void delayedWrite(unsigned long *delayValue, char *data)
 {
-        printf("%s ", data);  // add the space to the stdout buffer
-        fflush(stdout);         // show the user
-        delay(*delayValue);            // delay so we can read the display
+        printf("%s ", data);  // print the data to the user
+        fflush(stdout);
+        delay(*delayValue);   // delay so we can read the display
 }

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     unsigned long delayValueClear = 1000;
     //  initialize i as 0, used as a loop variable
     volatile int i = 0;
-    // don't allow more than a single argument to be passed to this program
+    // don't allow more than 2 arguments to be passed to this program
     if (argc > 3){
         printf("Too many arguments!  This program accepts 2, 1 or 0 arguments of type unsigned int. \n");
         printf("Argument 1 specifies delay in printing numbers. \n");
