@@ -6,13 +6,10 @@ DEPS =
 
 ODIR = build
 
-$(ODIR)/%.o: %.c $(DEPS) | mkdir
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-$(ODIR)/project1%: project1%-2017.c | mkdir
+$(ODIR)/project1%: project1/project1%-2017.c | mkdir
 	$(CC) -o $@ $^ $(CFLAGS)
 
-$(ODIR)/app%: $(ODIR)/app%.o $(ODIR)/delay.o | mkdir
+$(ODIR)/app%: applications/app%.c applications/delay.c | mkdir
 	$(CC) -o $@ $^ $(CFLAGS)
 
 
