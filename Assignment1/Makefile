@@ -11,7 +11,6 @@ ODIR = build
 build: $(ODIR)/project1a-2017-annotated \
 	$(ODIR)/project1a-2017-external-file \
 	$(ODIR)/project1a-2017-function-loops \
-	$(ODIR)/project1a-2017-mod \
 	$(ODIR)/project1a-2017-param-delay \
 	$(ODIR)/project1a-2017-pointer-reference \
 	$(ODIR)/project1a-2017-single-function \
