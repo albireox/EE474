@@ -6,7 +6,7 @@ void main(void)
 {
     int i = 0;									//  declare a working variable
 
-    char myArray[5];							//  declare a character array
+    char myArray[6];							//  declare a character array
 
     for (i = 0; i <= 5; i++)					//  fill array with characters
     {
