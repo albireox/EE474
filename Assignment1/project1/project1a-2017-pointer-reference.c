@@ -107,6 +107,7 @@ void delay(unsigned long aValue)
 //*****************************************************************************
 void f1Data(unsigned long *delay1)
 {
+      int i = 0; // initialize loop vairable
       //  working C style string
       // this char array is re-populated
       // throughout the program with numbers
@@ -115,7 +116,7 @@ void f1Data(unsigned long *delay1)
       // this loop builds the output line
       // 0 1 2 3 ... with a delay between each
       // printed integer
-      for (int i = 9; i >=0; i--)
+      for (i = 9; i >=0; i--)
       {
         myData[0] = i + '0';        //  convert the int i to ascii
         myData[1] = '\0';           //  terminate the string
@@ -136,10 +137,11 @@ void f1Data(unsigned long *delay1)
 //*****************************************************************************
 void f2Clear(unsigned long *delay2)
 {
+      int i = 0; // initialize loop vairable
       //  begin the loop to clear the line
       // this overwrites each number that was printed
       // in previous loop above with a space character
-      for (int i = 0; i < 10; i++)
+      for (i = 0; i < 10; i++)
       {
         printf("%s ", " \0");  // add the space to the stdout buffer
         fflush(stdout);         // show the user

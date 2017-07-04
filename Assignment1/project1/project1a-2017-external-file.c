@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 //*****************************************************************************
 void dataLoop(unsigned long *delayValue, int showNumber)
 {
+      int i = 0; // initialize loop vairable
       //  working C style string
       // this char array is re-populated
       // throughout the program with numbers
@@ -93,7 +94,7 @@ void dataLoop(unsigned long *delayValue, int showNumber)
       // initialize it as an empty space
       char myData[3] = " \0";
       // loop from 9 to 0
-      for (int i = 9; i >=0; i--)
+      for (i = 9; i >=0; i--)
       {
         if (1 == showNumber)
         {
