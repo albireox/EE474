@@ -134,9 +134,10 @@ void updateBatteryLevel(struct PowerSubsystemData* psData)
 
 void powerSubsystem(void* data)
 {
+    //@todo: decide whether or not to run based on scheduler
     // set up a counter to track calls to this funtion
     // value is 0 at first call.
-    static int nCalls = -1; nCalls++;
+    static int nCalls = 0;
     struct PowerSubsystemData* psData = (struct PowerSubsystemData*) data;
     updatePowerConsumption(nCalls, psData);
     updateBatteryLevel(psData);
@@ -146,7 +147,7 @@ void powerSubsystem(void* data)
     printf("battery level is %hu\n", *psData->batteryLvlPtr);
     printf("solar panel state is %i\n", *psData->solarPanelStatePtr);
     printf("nCalls %i\n\n", nCalls);
-
+    nCalls++; // increment the call counter
 }
 
 
