@@ -1,12 +1,12 @@
-// tasks.h
+// satellite.h
 //
 // Conor Sayres and José Sánchez-Gallego
 //
-// This header file defines the tasks to be scheduled and function prototypes
-// for each task.
+// This header file declares the tasks to be scheduled and function prototypes
+// for each task, as well as global variables
 
-#ifndef TASKS_H
-#define TASKS_H
+#ifndef SATELLITE_H
+#define SATELLITE_H
 
 #include "bool.h"
 #include <time.h>
