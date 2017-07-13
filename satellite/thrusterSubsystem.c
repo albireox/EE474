@@ -231,7 +231,7 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemData* tsData)
     static double tNow, elapsedSeconds, fuelUsed;
     // determine elapsed time between fuel level updates.
     // set only once (should be 100%), double for non-integer math
-    static double fuelLevel = (double)(*tsData->fuelLevelPtr);
+    static double fuelLevel = 100; // (double)*tsData->fuelLvlPtr;
     static int lastImpulseOn = -1; // -1 for uninitialized
     static double tLast = -1; // -1 for uninitialized
     tNow = timeNow();
@@ -254,9 +254,9 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemData* tsData)
             fuelUsed = elapsedSeconds*fuelRate;
             fuelLevel -= fuelUsed;
             // cast the new level to an unsigned short and update
-            *tsData->fuelLevelPtr = (unsigned short)fuelLevel;
+            *tsData->fuelLvlPtr = (unsigned short)fuelLevel;
             printf("fuel double: %f\n", fuelLevel);
-            printf("fuel short: %hu\n", *tsData->fuelLevelPtr);
+            printf("fuel short: %hu\n", *tsData->fuelLvlPtr);
         }
         // uninitialized, first time we've been called
         // set things up for the next call
