@@ -33,7 +33,8 @@ struct TCB {
 
 // Task data structure prototypes
 struct WarningStruct {
-    time_t lastTimeRun;
+    double lastTimeRun;
+    float interval;
     Bool * fuelLow;
     Bool * batteryLow;
     unsigned short * fuelLevel;
@@ -43,6 +44,13 @@ struct WarningStruct {
 
 // Task function prototypes
 void warningAlarmTask(void * data);
+
+
+// General function prototypes
+
+// From time.c
+double now();
+Bool doRun(float interval, double lastTimeRun);
 
 
 #endif
