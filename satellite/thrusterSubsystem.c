@@ -18,7 +18,23 @@
 // This defines the minimum thrust duration as 0.0625 seconds,
 // to ensure coorect pulse toggling this task should be rentered every
 // 0.01 seconds
-#define MIN_PULSE_DURATION 0.0625;  // seconds
+// #define MIN_PULSE_DURATION 0.0625;  // seconds
+
+
+// gpio ports:
+// down = 66, up = 67, right = 68, left = 69
+#define GPIO_DOWN 66
+#define GPIO_UP 67
+#define GPIO_RIGHT 68
+#define GPIO_LEFT 69
+// gpio initial states:
+
+// gpio state flags for each thruster
+// for on vs off, initialize all to off
+static int gpioFlagDown = 0;
+static int gpioFlagUp = 0;
+static int gpioFlagLeft = 0;
+static int gpioFlagRight = 0;
 
 // Global Vars (defined in globalVars.c)
 extern unsigned short FUEL_LVL;
@@ -119,12 +135,82 @@ int isActive(struct ThrusterCommand* thrusterCommand)
 }
 
 // set gpio
-// inputs:
-//     port: 1 = down, 2 = up, 3 = right, 4 = left
-//     value: 1 = on, 0 = off
-void setGPIO(int port, int value)
+// but only set it if it is
+// different than the last time it was set!
+// eg, don't keep writing a high value if it's
+// already high
+void toggleGPIO()
 {
-    // to be implemented
+    static FILE *fp;
+    // local vars for dectecting if the value
+    // has changed.  initialize to -1
+    // so that on first call they get set
+    // to initial values
+    static int lastGpioFlagDown = -1;
+    static int lastGpioFlagUp = -1;
+    static int lastGpioFlagLeft = -1;
+    static int lastGpioFlagRight = -1;
+    // down gpio
+    if (lastGpioFlagDown != gpioFlagDown)
+    {
+        printf("setting down flag to %i\n", gpioFlagDown);
+        lastGpioFlagDown = gpioFlagDown;
+        fp = fopen("/sys/class/gpio/gpio66/value", "w");
+        if (1 == gpioFlagDown)
+        {
+            fprintf(fp, "1");
+        }
+        else
+        {
+            fprintf(fp, "0");
+        }
+        fclose(fp);
+    }
+    // up gpio
+    if (lastGpioFlagUp != gpioFlagUp)
+    {
+        lastGpioFlagUp = gpioFlagUp;
+        fp = fopen("/sys/class/gpio/gpio67/value", "w");
+        if (1 == gpioFlagUp)
+        {
+            fprintf(fp, "1");
+        }
+        else
+        {
+            fprintf(fp, "0");
+        }
+        fclose(fp);
+    }
+    // right gpio
+    if (lastGpioFlagRight != gpioFlagRight)
+    {
+        lastGpioFlagRight = gpioFlagRight;
+        fp = fopen("/sys/class/gpio/gpio68/value", "w");
+        if (1 == gpioFlagRight)
+        {
+            fprintf(fp, "1");
+        }
+        else
+        {
+            fprintf(fp, "0");
+        }
+        fclose(fp);
+    }
+    // left gpio
+    if (lastGpioFlagLeft != gpioFlagLeft)
+    {
+        lastGpioFlagLeft = gpioFlagLeft;
+        fp = fopen("/sys/class/gpio/gpio69/value", "w");
+        if (1 == gpioFlagLeft)
+        {
+            fprintf(fp, "1");
+        }
+        else
+        {
+            fprintf(fp, "0");
+        }
+        fclose(fp);
+    }
     return;
 }
 
@@ -136,21 +222,15 @@ void thrusterSubsystem(void* data)
 
     // cast input to correct type
     struct ThrusterSubsystemData* tsData = (struct ThrusterSubsystemData*) data;
+
     // created once, persists, update this struct as new commands come in
     static struct ThrusterCommand thrusterCommand;
-    // gpio state flags for each thruster
-    // for on vs off, initialize all to off
-    static int gpioFlagDown = 0;
-    static int gpioFlagUp = 0;
-    static int gpioFlagLeft = 0;
-    static int gpioFlagRight = 0;
 
     // @todo, use an array of pointers for gpios?
 
     double tElapsed; // time elapsed for the active command
     double fractionalSec; //fraction of second elapsed
     int impulseOn; // 0 or 1.  If impluse on, set gpio on, else off
-
     // check if a new command is present.
     // if so overwrite the previous command
     // even if it has not finished!!!!
@@ -168,74 +248,66 @@ void thrusterSubsystem(void* data)
         printf("thrust mag %f\n", thrusterCommand.magnitude);
         printf("thrust duration %i\n", thrusterCommand.duration);
         printf("-----------------------\n");
-        // re-initialize all gpio to off for the new command
-        gpioFlagDown = 0; setGPIO(1, gpioFlagDown);
-        gpioFlagUp = 0; setGPIO(2, gpioFlagUp);
-        gpioFlagRight = 0; setGPIO(3, gpioFlagLeft);
-        gpioFlagLeft = 0; setGPIO(4, gpioFlagRight);
-    }
-    else
-    {
-        // printf("no new thruster command\n");
     }
     // check whether the current command is still active
     if(!isActive(&thrusterCommand))
     {
         // there is no command active,
-        // reset all gpio to 0
-        // these are reset every time...harmeless but maybe only try to
-        // do this once when a command finishes?
-        gpioFlagDown = 0; setGPIO(1, gpioFlagDown);
-        gpioFlagUp = 0; setGPIO(2, gpioFlagUp);
-        gpioFlagRight = 0; setGPIO(3, gpioFlagLeft);
-        gpioFlagLeft = 0; setGPIO(4, gpioFlagRight);
-        // printf("current cmd is inActive\n");
-        return;
+        // ensure all gpio to 0
+        gpioFlagDown = 0;
+        gpioFlagUp = 0;
+        gpioFlagRight = 0;
+        gpioFlagLeft = 0;
     }
-    // printf("current cmd is active!\n");
-    // a thruster command is active, check timers and
-    // update thruster signals
-    // impluse period is 1 second decide how to toggle
-    // gpio based on time that has elapsed
-    tElapsed = elapsedSeconds(&thrusterCommand);
-    // determine fractional second
-    fractionalSec = tElapsed - (int)tElapsed;
-    // determine whether or not an impluse is wanted
-    impulseOn = fractionalSec < thrusterCommand.magnitude; // magnitude is fraction of second!
-    // look at which thrusters should be active/inactive, update gpio
-    // @todo: loop over these instead?
-    if(thrusterCommand.downOn)
+    else
     {
-        gpioFlagDown = impulseOn; setGPIO(1, gpioFlagDown);
+        // printf("current cmd is active!\n");
+        // a thruster command is active, check timers and
+        // update thruster signals
+        // impluse period is 1 second decide how to toggle
+        // gpio based on time that has elapsed
+        tElapsed = elapsedSeconds(&thrusterCommand);
+        // determine fractional second
+        fractionalSec = tElapsed - (int)tElapsed;
+        // determine whether or not an impluse is wanted
+        impulseOn = fractionalSec < thrusterCommand.magnitude; // magnitude is fraction of second!
+        // look at which thrusters should be active/inactive, update gpio
+        // @todo: loop over these instead?
+        if(thrusterCommand.downOn)
+        {
+            gpioFlagDown = impulseOn;
+        }
+        if(thrusterCommand.upOn)
+        {
+            gpioFlagUp = impulseOn;
+        }
+        if(thrusterCommand.rightOn)
+        {
+            gpioFlagRight = impulseOn;
+        }
+        if(thrusterCommand.leftOn)
+        {
+            gpioFlagLeft = impulseOn;
+        }
     }
-    if(thrusterCommand.upOn)
-    {
-        gpioFlagUp = impulseOn; setGPIO(2, gpioFlagUp);
-    }
-    if(thrusterCommand.rightOn)
-    {
-        gpioFlagRight = impulseOn; setGPIO(3, gpioFlagRight);
-    }
-    if(thrusterCommand.leftOn)
-    {
-        gpioFlagLeft = impulseOn; setGPIO(4, gpioFlagLeft);
-    }
-    printf("time, gpios: %f %i %i %i %i\n", tElapsed, gpioFlagDown, gpioFlagUp, gpioFlagLeft, gpioFlagRight);
+    toggleGPIO();
+    // printf("time, gpios: %f %i %i %i %i\n", tElapsed, gpioFlagDown, gpioFlagUp, gpioFlagLeft, gpioFlagRight);
 }
 
+// int main(void)
+// {
+//     FILE *fp;
+//     fp = fopen("/sys/class/gpio/gpio64/value", "w");
+//     fprintf(fp, "1");
+//     fclose(fp);
 
+//     fp = fopen("/sys/class/gpio/gpio64/value", "r");
 
-// int main(void){
-//     double g = 1.95;
-//     int v = (int)g;
-//     double frac = g - v;
-//     printf("g: %f\n",g);
-//     printf("v: %i\n",v);
-//     printf("frac: %f\n", frac);
 // }
 
 int main(void)
 {
+    toggleGPIO(); // initialize all gpio
     unsigned tCmd;
     int intTCmd;
     // tCmd = 0x111; // 1sec 0.0625 mag, down
@@ -267,6 +339,16 @@ int main(void)
     //     thrusterSubsystem(&tsData);
     // }
 }
+
+
+// int main(void){
+//     double g = 1.95;
+//     int v = (int)g;
+//     double frac = g - v;
+//     printf("g: %f\n",g);
+//     printf("v: %i\n",v);
+//     printf("frac: %f\n", frac);
+// }
 
 // int main(void){
 //     unsigned thrustMag = 0x61;
