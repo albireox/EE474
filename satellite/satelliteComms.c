@@ -3,6 +3,7 @@
 // Conor Sayres and José Sánchez-Gallego
 #include <stdio.h>
 #include <time.h>
+#include "bool.h"
 
 // Global Vars (defined in globalVars.c)
 extern unsigned short BATTERY_LVL;
@@ -25,18 +26,12 @@ struct SatelliteCommsData
     Bool* batteryLowPtr;
 };
 
-// initialize log file and print headers!
-FILE *logfile;
-logfile = fopen("/home/debian/satellite2earth.log", "w");
-fprintf("#timestamp, Fuel Low, Battery Low, Solar Panel, Battery Level, Fuel Level, Power Consumption, Power Generation\n");
-fclose(logfile);
-
 // ----------------- functions ---------------//
 
 
 // initialize the SC data struct
 struct SatelliteCommsData getSCData(){
-    struct PowerSubsystemData scData;
+    struct SatelliteCommsData scData;
     scData.batteryLvlPtr = &BATTERY_LVL;
     scData.pwrConsumptionPtr = &PWR_CONSUMPTION;
     scData.pwrGenerationPtr = &PWR_GENERATION;
@@ -57,12 +52,15 @@ double timeNow()
 // emulating communication to earth
 void updateLog(struct SatelliteCommsData* scData)
 {
+    FILE *logfile;
     logfile = fopen("/home/debian/satellite2earth.log", "w+");
     fprintf
     (
-        "%d, %i, %i, %i, %hu, %hu, %hu, %hu\n",
-        timeNow(), *psData->fuelLowPtr, *psData->batteryLowPtr,
-        *psData->solarPanelStatePtr, *psData->batteryLvlPtr, *psData->pwrGenerationPtr
+        logfile,
+        "%f, %i, %i, %i, %hu, %hu, %hu, %hu\n",
+        timeNow(), *scData->fuelLowPtr, *scData->batteryLowPtr,
+        *scData->solarPanelStatePtr, *scData->batteryLvlPtr, *scData->fuelLvlPtr,
+        *scData->pwrConsumptionPtr, *scData->pwrGenerationPtr
     );
     fclose(logfile);
 }
@@ -74,22 +72,23 @@ void satelliteComms(void* data)
     //@todo: decide whether or not to run based on scheduler
 
     struct SatelliteCommsData* scData = (struct SatelliteCommsData*) data;
-    updatePowerConsumption(nCalls, psData);
-    updateBatteryLevel(psData);
-    updatePowerGeneration(nCalls, psData);
-    printf("power consumption level is %hu\n", *psData->pwrConsumptionPtr);
-    printf("power generation level is %hu\n", *psData->pwrGenerationPtr);
-    printf("battery level is %hu\n", *psData->batteryLvlPtr);
-    printf("solar panel state is %i\n", *psData->solarPanelStatePtr);
-    printf("nCalls %i\n\n", nCalls);
-    nCalls++; // increment the call counter
+    updateLog(scData);
+    printf("power consumption level is %hu\n", *scData->pwrConsumptionPtr);
+    printf("power generation level is %hu\n", *scData->pwrGenerationPtr);
+    printf("battery level is %hu\n", *scData->batteryLvlPtr);
+    printf("solar panel state is %i\n", *scData->solarPanelStatePtr);
 }
 
 int main(void){
     int i;
     struct SatelliteCommsData scData;
+    // initialize log file and print headers!
+    FILE *logfile;
+    logfile = fopen("/home/debian/satellite2earth.log", "w");
+    fprintf(logfile, "#timestamp, Fuel Low, Battery Low, Solar Panel, Battery Level, Fuel Level, Power Consumption, Power Generation\n");
+    fclose(logfile);
     scData = getSCData();
-    for (i=0;i<20:i++)
+    for (i=0;i<20;i++)
     {
         satelliteComms(&scData);
     }
