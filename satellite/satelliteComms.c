@@ -91,6 +91,9 @@ int main(void){
     scData = getSCData();
     for (i=0;i<20;i++)
     {
+        if(5=i){
+            *scData.fuelLowPtr = TRUE;
+        }
         satelliteComms(&scData);
         t1 = timeNow();
         t2 = timeNow();
