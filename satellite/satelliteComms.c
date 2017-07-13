@@ -53,7 +53,7 @@ double timeNow()
 void updateLog(struct SatelliteCommsData* scData)
 {
     FILE *logfile;
-    logfile = fopen("/home/debian/satellite2earth.log", "w+");
+    logfile = fopen("/home/debian/satellite2earth.log", "a+");
     fprintf
     (
         logfile,
