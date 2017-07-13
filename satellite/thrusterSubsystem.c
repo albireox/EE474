@@ -113,7 +113,7 @@ void decodeThrusterCommand(unsigned thrustCommandBits, struct ThrusterCommand* t
     // express it as a ratio of magnitudeMax and save it
     thrusterCommand->magnitude = (double)(magnitudeExtracted)/(double)(magnitudeMax);
 
-    // decode duration, express it as a fraction of 1, bits 7-3
+    // decode duration, bits 7-3, express as integer seconds
     // shift thrustCommandBits right 8 bits to get the final 8 (of 16)
     static unsigned durationMask = 0xff; // = 1111 1111
     //integer value for bits 15-8
@@ -214,6 +214,57 @@ void toggleGPIO()
     return;
 }
 
+//update the fuel level
+//inputs:
+//    impulseOn: 1 for thruster is on, 0 for thruster is off
+//    tsData: pointer to thruster subsystem data struct, this function
+//            modifies the fuel level (an attribute of tsData structure)
+//discuss error in fuel level approximation?
+void updateFuelLevel(int impulseOn, struct ThrusterSubsystemData* tsData)
+{
+
+    // rate of fuel consumption, empty after 6 months @ 5% fuel use.
+    // 6 months = 15770000 seconds.
+    // so rate at 100% fuel consumption ammounts to:
+    // (100/15770000)*20 (percent/sec) = 0.00012682308180088776 (percent/sec)
+    static double fuelRate = 0.00012682308180088776; // rate at 100% thrust magnitude
+    static double tNow, elapsedSeconds, fuelUsed;
+    // determine elapsed time between fuel level updates.
+    // set only once (should be 100%), double for non-integer math
+    static double fuelLevel = (double)(*tsData->fuelLevelPtr);
+    static int lastImpulseOn = -1; // -1 for uninitialized
+    static double tLast = -1; // -1 for uninitialized
+    tNow = timeNow();
+    if(lastImpulseOn < 0)
+    {
+        // uninitialized, first time we've been called
+        // set things up for the next call
+        lastImpulseOn = impulseOn;
+        tLast = tNow;
+    }
+    else
+    {
+        // if impulse is on, and the last impulse was on
+        // we've gone a full period of thruster use
+        // determine the time elapsed and update the fuel level
+        if(impulseOn && lastImpulseOn)
+        {
+            elapsedSeconds = tNow - tLast;
+            // so fuel used since the last fuel level update is
+            fuelUsed = elapsedSeconds*fuelRate;
+            fuelLevel -= fuelUsed;
+            // cast the new level to an unsigned short and update
+            *tsData->fuelLevelPtr = (unsigned short)fuelLevel;
+            printf("fuel double: %f\n", fuelLevel);
+            printf("fuel short: %hu\n", *tsData->fuelLevelPtr);
+        }
+        // uninitialized, first time we've been called
+        // set things up for the next call
+        lastImpulseOn = impulseOn;
+        tLast = tNow;
+    }
+}
+
 // ------------------- task ----------------- //
 
 void thrusterSubsystem(void* data)
@@ -258,6 +309,7 @@ void thrusterSubsystem(void* data)
         gpioFlagUp = 0;
         gpioFlagRight = 0;
         gpioFlagLeft = 0;
+        impulseOn = 0;
     }
     else
     {
@@ -290,7 +342,8 @@ void thrusterSubsystem(void* data)
             gpioFlagLeft = impulseOn;
         }
     }
-    toggleGPIO();
+    toggleGPIO(); // will only toggle if bit is flipped!
+    updateFuelLevel(impulseOn, tsData);
     // printf("time, gpios: %f %i %i %i %i\n", tElapsed, gpioFlagDown, gpioFlagUp, gpioFlagLeft, gpioFlagRight);
 }
 
