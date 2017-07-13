@@ -81,6 +81,7 @@ void satelliteComms(void* data)
 
 int main(void){
     int i;
+    double t1, t2;
     struct SatelliteCommsData scData;
     // initialize log file and print headers!
     FILE *logfile;
@@ -91,5 +92,12 @@ int main(void){
     for (i=0;i<20;i++)
     {
         satelliteComms(&scData);
+        t1 = timeNow();
+        t2 = timeNow();
+        while(t2-t1<0.2)
+        {
+            // force a time delay
+            t2=timeNow();
+        }
     }
 }
