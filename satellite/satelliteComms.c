@@ -3,6 +3,7 @@
 // Conor Sayres and José Sánchez-Gallego
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 #include "bool.h"
 
 // Global Vars (defined in globalVars.c)
@@ -13,6 +14,7 @@ extern unsigned short PWR_GENERATION;
 extern Bool SOLAR_PANEL_STATE;
 extern Bool FUEL_LOW;
 extern Bool BATTERY_LOW;
+extern unsigned int THRUST_CMD;
 
 // data structure
 struct SatelliteCommsData
@@ -24,6 +26,7 @@ struct SatelliteCommsData
     Bool* solarPanelStatePtr;
     Bool* fuelLowPtr;
     Bool* batteryLowPtr;
+    unsigned int* thrustCmdPtr;
 };
 
 // ----------------- functions ---------------//
@@ -39,6 +42,7 @@ struct SatelliteCommsData getSCData(){
     scData.solarPanelStatePtr = &SOLAR_PANEL_STATE;
     scData.fuelLowPtr = &FUEL_LOW;
     scData.batteryLowPtr = &BATTERY_LOW;
+    scData.thrustCmdPtr = &THRUST_CMD;
     return scData;
 }
 
@@ -65,6 +69,29 @@ void updateLog(struct SatelliteCommsData* scData)
     fclose(logfile);
 }
 
+//read in a thrust command, set it in the data structure
+void updateThrustCommand(struct SatelliteCommsData* scData)
+{
+    //look for a hex command in /home/debian/earth2satellite
+    // if present read it, and set it on the scData struct
+    unsigned int thrustCmd;
+    static FILE *thrustCmdFile;
+    // if the file exists, read it and delete it
+    if( access ("/home/debian/earth2satellite", F_OK) != -1)
+    {
+        thrustCmdFile = fopen("/home/debian/earth2satellite", "r");
+        fscanf(thrustCmdFile, "%i", &thrustCmd);
+        printf("thrustcmd %i\n", thrustCmd);
+        fclose(thrustCmdFile);
+        // remove the file now we have read it
+        remove("/home/debian/earth2satellite");
+        // set the command on the data struct
+        *scData->thrustCmdPtr = thrustCmd;
+    }
+
+
+}
+
 // ------------- task --------------------//
 
 void satelliteComms(void* data)
@@ -73,10 +100,12 @@ void satelliteComms(void* data)
 
     struct SatelliteCommsData* scData = (struct SatelliteCommsData*) data;
     updateLog(scData);
+    updateThrustCommand(scData);
     printf("power consumption level is %hu\n", *scData->pwrConsumptionPtr);
     printf("power generation level is %hu\n", *scData->pwrGenerationPtr);
     printf("battery level is %hu\n", *scData->batteryLvlPtr);
     printf("solar panel state is %i\n", *scData->solarPanelStatePtr);
+    printf("thrustCmd is %i\n", *scData->thrustCmdPtr);
 }
 
 int main(void){
@@ -91,8 +120,8 @@ int main(void){
     scData = getSCData();
     for (i=0;i<20;i++)
     {
-        if(5=i){
-            *scData.fuelLowPtr = TRUE;
+        if(5==i){
+            *(scData.fuelLowPtr) = TRUE;
         }
         satelliteComms(&scData);
         t1 = timeNow();
