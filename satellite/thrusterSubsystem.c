@@ -24,11 +24,7 @@
 extern unsigned short FUEL_LVL;
 extern unsigned int THRUST_CMD;
 
-// return time now in seconds
-double timeNow()
-{
-    return (double)clock()/(double)CLOCKS_PER_SEC;
-}
+// -------- structures ---------------- //
 
 // data structure
 struct ThrusterSubsystemData
@@ -37,25 +33,34 @@ struct ThrusterSubsystemData
     unsigned int* thrustCmdPtr;
 };
 
+
+// structure for holding a decoded thrust command
+struct ThrusterCommand
+{
+    double tStart;          // time command was started in seconds
+    double magnitude;       // fraction of maximum thrust
+    int duration;           // duration of thrust in seconds
+    int leftOn;             // left thruster commanded, 1 or 0
+    int rightOn;            // right thruster commanded, 1 or 0
+    int upOn;               // up thruster commanded, 1 or 0
+    int downOn;             // down thruster commanded, 1 or 0
+
+};
+
+// -------- helper functions ---------------- //
+
+// return time now in seconds
+double timeNow()
+{
+    return (double)clock()/(double)CLOCKS_PER_SEC;
+}
+
 // initialize the TS data struct
 struct ThrusterSubsystemData getTSData(){
     struct ThrusterSubsystemData tsData;
     tsData.fuelLvlPtr = &FUEL_LVL;
     tsData.thrustCmdPtr = &THRUST_CMD;
     return tsData;
-};
-
-// structure for holding a decoded thrust command
-struct ThrusterCommand
-{
-    double tStart;    // time command was started in seconds
-    double magnitude; // fraction of maximum thrust
-    int duration;     // duration of thrust in seconds
-    int leftOn;      // left thruster commanded, 1 or 0
-    int rightOn;     // right thruster commanded, 1 or 0
-    int upOn;        // up thruster commanded, 1 or 0
-    int downOn;      // down thruster commanded, 1 or 0
-
 };
 
 // decode a thrust command
@@ -87,37 +92,70 @@ void decodeThrusterCommand(unsigned thrustCommandBits, struct ThrusterCommand* t
     // shift thrustCommandBits right 4 bits
     static unsigned magnitudeMask = 0xf; // = 1111
     static int magnitudeMax = 16; // 1111 = 16
-    //integer value for bits 7-4
+    //integer value for bits 7-4, get there by shifting by 4
     int magnitudeExtracted = (int)((thrustCommandBits>>4)&magnitudeMask);
     // express it as a ratio of magnitudeMax and save it
     thrusterCommand->magnitude = (double)(magnitudeExtracted)/(double)(magnitudeMax);
 
     // decode duration, express it as a fraction of 1, bits 7-3
-    // shift thrustCommandBits right 8 bits
+    // shift thrustCommandBits right 8 bits to get the final 8 (of 16)
     static unsigned durationMask = 0xff; // = 1111 1111
     //integer value for bits 15-8
     thrusterCommand->duration = (int)((thrustCommandBits>>8)&durationMask);
 }
 
-// return 1 if the command is still active
-// else return 0.  A command is active if
-// tStart + duration < timeNow()
-int isActive(struct ThrusterCommand* thrusterCommand)
+// elapsed seconds for an a thruster command
+double elapsedSeconds(struct ThrusterCommand* thrusterCommand)
 {
-    return (thrusterCommand->tStart + thrusterCommand->duration) < timeNow();
+    return timeNow() - thrusterCommand->tStart;
 }
 
+// return 1 if the command is still active
+// else return 0.  A command is active if
+// tStart + duration > timeNow()
+int isActive(struct ThrusterCommand* thrusterCommand)
+{
+    return elapsedSeconds(thrusterCommand) < thrusterCommand->duration;
+}
+
+// set gpio
+// inputs:
+//     port: 1 = down, 2 = up, 3 = right, 4 = left
+//     value: 1 = on, 0 = off
+void setGPIO(int port, int value)
+{
+    // to be implemented
+    return;
+}
+
+// ------------------- task ----------------- //
 
 void thrusterSubsystem(void* data)
 {
     //@todo: decide whether or not to run based on scheduler
-    static struct ThrusterCommand thrusterCommand; // created once, persists
+
+    // cast input to correct type
     struct ThrusterSubsystemData* tsData = (struct ThrusterSubsystemData*) data;
+    // created once, persists, update this struct as new commands come in
+    static struct ThrusterCommand thrusterCommand;
+    // gpio state flags for each thruster
+    // for on vs off, initialize all to off
+    static int gpioFlagDown = 0;
+    static int gpioFlagUp = 0;
+    static int gpioFlagLeft = 0;
+    static int gpioFlagRight = 0;
+
+    // @todo, use an array of pointers for gpios?
+
+    double tElapsed; // time elapsed for the active command
+    double fractionalSec; //fraction of second elapsed
+    int impulseOn; // 0 or 1.  If impluse on, set gpio on, else off
+
     // check if a new command is present.
     // if so overwrite the previous command
     // even if it has not finished!!!!
     if(*tsData->thrustCmdPtr){
-        printf("got thruster command\n");
+        printf("got new thruster command\n");
         decodeThrusterCommand(*tsData->thrustCmdPtr, &thrusterCommand);
         // Null the pointer (to be populated by sattelite comms)
         *tsData->thrustCmdPtr =  0;
@@ -130,36 +168,104 @@ void thrusterSubsystem(void* data)
         printf("thrust mag %f\n", thrusterCommand.magnitude);
         printf("thrust duration %i\n", thrusterCommand.duration);
         printf("-----------------------\n");
+        // re-initialize all gpio to off for the new command
+        gpioFlagDown = 0; setGPIO(1, gpioFlagDown);
+        gpioFlagUp = 0; setGPIO(2, gpioFlagUp);
+        gpioFlagRight = 0; setGPIO(3, gpioFlagLeft);
+        gpioFlagLeft = 0; setGPIO(4, gpioFlagRight);
     }
     else
     {
-        printf("no new thruster command\n");
+        // printf("no new thruster command\n");
     }
     // check whether the current command is still active
-    // (has it run to its final duration?)
-    printf("command active: %i\n", isActive(&thrusterCommand));
-
+    if(!isActive(&thrusterCommand))
+    {
+        // there is no command active,
+        // reset all gpio to 0
+        // these are reset every time...harmeless but maybe only try to
+        // do this once when a command finishes?
+        gpioFlagDown = 0; setGPIO(1, gpioFlagDown);
+        gpioFlagUp = 0; setGPIO(2, gpioFlagUp);
+        gpioFlagRight = 0; setGPIO(3, gpioFlagLeft);
+        gpioFlagLeft = 0; setGPIO(4, gpioFlagRight);
+        // printf("current cmd is inActive\n");
+        return;
+    }
+    // printf("current cmd is active!\n");
+    // a thruster command is active, check timers and
+    // update thruster signals
+    // impluse period is 1 second decide how to toggle
+    // gpio based on time that has elapsed
+    tElapsed = elapsedSeconds(&thrusterCommand);
+    // determine fractional second
+    fractionalSec = tElapsed - (int)tElapsed;
+    // determine whether or not an impluse is wanted
+    impulseOn = fractionalSec < thrusterCommand.magnitude; // magnitude is fraction of second!
+    // look at which thrusters should be active/inactive, update gpio
+    // @todo: loop over these instead?
+    if(thrusterCommand.downOn)
+    {
+        gpioFlagDown = impulseOn; setGPIO(1, gpioFlagDown);
+    }
+    if(thrusterCommand.upOn)
+    {
+        gpioFlagUp = impulseOn; setGPIO(2, gpioFlagUp);
+    }
+    if(thrusterCommand.rightOn)
+    {
+        gpioFlagRight = impulseOn; setGPIO(3, gpioFlagRight);
+    }
+    if(thrusterCommand.leftOn)
+    {
+        gpioFlagLeft = impulseOn; setGPIO(4, gpioFlagLeft);
+    }
+    printf("time, gpios: %f %i %i %i %i\n", tElapsed, gpioFlagDown, gpioFlagUp, gpioFlagLeft, gpioFlagRight);
 }
 
 
 
+// int main(void){
+//     double g = 1.95;
+//     int v = (int)g;
+//     double frac = g - v;
+//     printf("g: %f\n",g);
+//     printf("v: %i\n",v);
+//     printf("frac: %f\n", frac);
+// }
 
 int main(void)
 {
     unsigned tCmd;
     int intTCmd;
-    tCmd = 0x111; // 1sec 0.625 mag, down
+    // tCmd = 0x111; // 1sec 0.0625 mag, down
+    tCmd = 0x383; //0.5 mag, down up, 3sec
     intTCmd = (int)tCmd;
     THRUST_CMD = intTCmd;
     struct ThrusterSubsystemData tsData = getTSData();
     thrusterSubsystem(&tsData);
-
+    double t1, t2;
+    t1 = timeNow();
+    t2 = timeNow();
     thrusterSubsystem(&tsData);
+    while(t2-t1<3.01)
+    {
+        t2=timeNow();
+        thrusterSubsystem(&tsData);
+    }
 
-    tCmd = 0x113; // 1sec 0.625 mag, down, up
-    intTCmd = (int)tCmd;
-    THRUST_CMD = intTCmd;
-    thrusterSubsystem(&tsData);
+    // tCmd = 0x113; // 1sec 0.625 mag, down, up
+    // intTCmd = (int)tCmd;
+    // THRUST_CMD = intTCmd;
+    // thrusterSubsystem(&tsData);
+    // t1 = timeNow();
+    // t2 = timeNow();
+    // thrusterSubsystem(&tsData);
+    // while(t2-t1<1.01)
+    // {
+    //     t2=timeNow();
+    //     thrusterSubsystem(&tsData);
+    // }
 }
 
 // int main(void){
