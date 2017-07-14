@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+#include "satellite.h"
 
 // @todo keep track of timing errors for thrust duration(s)?
 
@@ -37,17 +38,17 @@ static int gpioFlagLeft = 0;
 static int gpioFlagRight = 0;
 
 // Global Vars (defined in globalVars.c)
-extern unsigned short FUEL_LVL;
-extern unsigned int THRUST_CMD;
+// extern unsigned short FUEL_LVL;
+// extern unsigned int THRUST_CMD;
 
 // -------- structures ---------------- //
 
 // data structure
-struct ThrusterSubsystemData
-{
-    unsigned short* fuelLvlPtr;
-    unsigned int* thrustCmdPtr;
-};
+// struct ThrusterSubsystemStruct
+// {
+//     unsigned short* fuelLvlPtr;
+//     unsigned int* thrustCmdPtr;
+// };
 
 
 // structure for holding a decoded thrust command
@@ -66,18 +67,18 @@ struct ThrusterCommand
 // -------- helper functions ---------------- //
 
 // return time now in seconds
-double timeNow()
-{
-    return (double)clock()/(double)CLOCKS_PER_SEC;
-}
+// double now()
+// {
+//     return (double)clock()/(double)CLOCKS_PER_SEC;
+// }
 
 // initialize the TS data struct
-struct ThrusterSubsystemData getTSData(){
-    struct ThrusterSubsystemData tsData;
-    tsData.fuelLvlPtr = &FUEL_LVL;
-    tsData.thrustCmdPtr = &THRUST_CMD;
-    return tsData;
-};
+// struct ThrusterSubsystemStruct getTSData(){
+//     struct ThrusterSubsystemStruct tsData;
+//     tsData.fuelLvlPtr = &FUEL_LVL;
+//     tsData.thrustCmdPtr = &THRUST_CMD;
+//     return tsData;
+// };
 
 // decode a thrust command
 // inputs: thrustCommandBits
@@ -94,7 +95,7 @@ void decodeThrusterCommand(unsigned thrustCommandBits, struct ThrusterCommand* t
 {
     // @todo, if thrustCommandBits is 0 raise error?
     // set tStart to now!
-    thrusterCommand->tStart = timeNow();
+    thrusterCommand->tStart = now();
     // test individually for bits 0-3
     // (https://class.ee.washington.edu/474/peckol/code/C/bits1.c)
     static unsigned bitSelect = 0x01;
@@ -123,12 +124,12 @@ void decodeThrusterCommand(unsigned thrustCommandBits, struct ThrusterCommand* t
 // elapsed seconds for an a thruster command
 double elapsedSeconds(struct ThrusterCommand* thrusterCommand)
 {
-    return timeNow() - thrusterCommand->tStart;
+    return now() - thrusterCommand->tStart;
 }
 
 // return 1 if the command is still active
 // else return 0.  A command is active if
-// tStart + duration > timeNow()
+// tStart + duration > now()
 int isActive(struct ThrusterCommand* thrusterCommand)
 {
     return elapsedSeconds(thrusterCommand) < thrusterCommand->duration;
@@ -220,7 +221,7 @@ void toggleGPIO()
 //    tsData: pointer to thruster subsystem data struct, this function
 //            modifies the fuel level (an attribute of tsData structure)
 //discuss error in fuel level approximation?
-void updateFuelLevel(int impulseOn, struct ThrusterSubsystemData* tsData)
+void updateFuelLevel(int impulseOn, struct ThrusterSubsystemStruct* tsData)
 {
 
     // rate of fuel consumption, empty after 6 months @ 5% fuel use.
@@ -234,7 +235,7 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemData* tsData)
     static double fuelLevel = 100; // (double)*tsData->fuelLvlPtr;
     static int lastImpulseOn = -1; // -1 for uninitialized
     static double tLast = -1; // -1 for uninitialized
-    tNow = timeNow();
+    tNow = now();
     if(lastImpulseOn < 0)
     {
         // uninitialized, first time we've been called
@@ -267,12 +268,15 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemData* tsData)
 
 // ------------------- task ----------------- //
 
-void thrusterSubsystem(void* data)
+void thrusterSubsystemTask(void* data)
 {
     //@todo: decide whether or not to run based on scheduler
 
     // cast input to correct type
-    struct ThrusterSubsystemData* tsData = (struct ThrusterSubsystemData*) data;
+    struct ThrusterSubsystemStruct* tsData = (struct ThrusterSubsystemStruct*) data;
+
+    if (doRun(tsData->interval, tsData->lastTimeRun) == FALSE)
+        return;
 
     // created once, persists, update this struct as new commands come in
     static struct ThrusterCommand thrusterCommand;
@@ -344,6 +348,7 @@ void thrusterSubsystem(void* data)
     }
     toggleGPIO(); // will only toggle if bit is flipped!
     updateFuelLevel(impulseOn, tsData);
+    tsData->lastTimeRun = now();
     // printf("time, gpios: %f %i %i %i %i\n", tElapsed, gpioFlagDown, gpioFlagUp, gpioFlagLeft, gpioFlagRight);
 }
 
@@ -358,53 +363,53 @@ void thrusterSubsystem(void* data)
 
 // }
 
-int main(void)
-{
-    toggleGPIO(); // initialize all gpio
-    static FILE *fp1;
-    unsigned tCmd;
-    int intTCmd;
-    // tCmd = 0x111; // 1sec 0.0625 mag, down
-    //tCmd = 0x383; //0.5 mag, down up, 3sec
-    tCmd = 0x8081;
-    intTCmd = (int)tCmd;
-    THRUST_CMD = intTCmd;
-    struct ThrusterSubsystemData tsData = getTSData();
-    thrusterSubsystem(&tsData);
-    double t1, t2, t3, t4;
-    t1 = timeNow();
-    t2 = timeNow();
-    thrusterSubsystem(&tsData);
-    while(t2-t1<100.01)
-    {
-        t2=timeNow();
-        fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
-        fprintf(fp1, "1");
-        fclose(fp1);
-        thrusterSubsystem(&tsData);
-        fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
-        fprintf(fp1, "0");
-        fclose(fp1);
-        t3 = timeNow();
-        t4 = timeNow();
-        // while(t4-t3<0.0001){
-        //     t4=timeNow();
-        // }
-    }
+// int main(void)
+// {
+//     toggleGPIO(); // initialize all gpio
+//     static FILE *fp1;
+//     unsigned tCmd;
+//     int intTCmd;
+//     // tCmd = 0x111; // 1sec 0.0625 mag, down
+//     //tCmd = 0x383; //0.5 mag, down up, 3sec
+//     tCmd = 0x8081;
+//     intTCmd = (int)tCmd;
+//     THRUST_CMD = intTCmd;
+//     struct ThrusterSubsystemStruct tsData = getTSData();
+//     thrusterSubsystem(&tsData);
+//     double t1, t2, t3, t4;
+//     t1 = now();
+//     t2 = now();
+//     thrusterSubsystem(&tsData);
+//     while(t2-t1<100.01)
+//     {
+//         t2=now();
+//         fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
+//         fprintf(fp1, "1");
+//         fclose(fp1);
+//         thrusterSubsystem(&tsData);
+//         fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
+//         fprintf(fp1, "0");
+//         fclose(fp1);
+//         t3 = now();
+//         t4 = now();
+//         // while(t4-t3<0.0001){
+//         //     t4=now();
+//         // }
+//     }
 
     // tCmd = 0x113; // 1sec 0.625 mag, down, up
     // intTCmd = (int)tCmd;
     // THRUST_CMD = intTCmd;
     // thrusterSubsystem(&tsData);
-    // t1 = timeNow();
-    // t2 = timeNow();
+    // t1 = now();
+    // t2 = now();
     // thrusterSubsystem(&tsData);
     // while(t2-t1<1.01)
     // {
-    //     t2=timeNow();
+    //     t2=now();
     //     thrusterSubsystem(&tsData);
     // }
-}
+// }
 
 
 // int main(void){

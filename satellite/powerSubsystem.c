@@ -5,35 +5,36 @@
 
 #include <stdio.h>
 #include "bool.h"
+#include "satellite.h"
 
 // Global Vars (defined in globalVars.c)
-extern unsigned short BATTERY_LVL;
-extern unsigned short PWR_CONSUMPTION;
-extern unsigned short PWR_GENERATION;
-extern Bool SOLAR_PANEL_STATE;
+// extern unsigned short BATTERY_LVL;
+// extern unsigned short PWR_CONSUMPTION;
+// extern unsigned short PWR_GENERATION;
+// extern Bool SOLAR_PANEL_STATE;
 
-// data structure
-struct PowerSubsystemData
-{
-    unsigned short* batteryLvlPtr;
-    unsigned short* pwrConsumptionPtr;
-    unsigned short* pwrGenerationPtr;
-    Bool* solarPanelStatePtr;
-};
+// // data structure
+// struct PowerSubsystemStruct
+// {
+//     unsigned short* batteryLvlPtr;
+//     unsigned short* pwrConsumptionPtr;
+//     unsigned short* pwrGenerationPtr;
+//     Bool* solarPanelStatePtr;
+// };
 
 // initialize the PS data struct
-struct PowerSubsystemData getPSData(){
-    struct PowerSubsystemData psData;
-    psData.batteryLvlPtr = &BATTERY_LVL;
-    psData.pwrConsumptionPtr = &PWR_CONSUMPTION;
-    psData.pwrGenerationPtr = &PWR_GENERATION;
-    psData.solarPanelStatePtr = &SOLAR_PANEL_STATE;
-    return psData;
-}
+// struct PowerSubsystemStruct getPSData(){
+//     struct PowerSubsystemStruct psData;
+//     psData.batteryLvlPtr = &BATTERY_LVL;
+//     psData.pwrConsumptionPtr = &PWR_CONSUMPTION;
+//     psData.pwrGenerationPtr = &PWR_GENERATION;
+//     psData.solarPanelStatePtr = &SOLAR_PANEL_STATE;
+//     return psData;
+// }
 
 // Increment powerconsumption by 2 on even calls, decrement by 1 on odd
 // calls if
-void updatePowerConsumption(int nCalls, struct PowerSubsystemData* psData)
+void updatePowerConsumption(int nCalls, struct PowerSubsystemStruct* psData)
 {
     // effective flag for determining if power consumption is rising or falling
     // begin with an increasing direction
@@ -65,7 +66,7 @@ void updatePowerConsumption(int nCalls, struct PowerSubsystemData* psData)
 
 }
 
-void updatePowerGeneration(int nCalls, struct PowerSubsystemData* psData)
+void updatePowerGeneration(int nCalls, struct PowerSubsystemStruct* psData)
 {
     unsigned short currentPowerGeneration = *psData->pwrGenerationPtr;
     if(*psData->solarPanelStatePtr)
@@ -107,7 +108,7 @@ void updatePowerGeneration(int nCalls, struct PowerSubsystemData* psData)
     }
 }
 
-void updateBatteryLevel(struct PowerSubsystemData* psData)
+void updateBatteryLevel(struct PowerSubsystemStruct* psData)
 {
     int currentBatteryLvl = *psData->batteryLvlPtr;
     int newBatteryLvl; // use signed ints to catch negative values
@@ -129,16 +130,20 @@ void updateBatteryLevel(struct PowerSubsystemData* psData)
 }
 
 // powerSubsystem task
-// argument: data to be cast to PowerSubsystemData type
+// argument: data to be cast to PowerSubsystemStruct type
 // for access to globals
 
-void powerSubsystem(void* data)
+void powerSubsystemTask(void* data)
 {
     //@todo: decide whether or not to run based on scheduler
     // set up a counter to track calls to this funtion
     // value is 0 at first call.
     static int nCalls = 0;
-    struct PowerSubsystemData* psData = (struct PowerSubsystemData*) data;
+    struct PowerSubsystemStruct* psData = (struct PowerSubsystemStruct*) data;
+
+    if (doRun(psData->interval, psData->lastTimeRun) == FALSE)
+        return;
+
     updatePowerConsumption(nCalls, psData);
     updateBatteryLevel(psData);
     updatePowerGeneration(nCalls, psData);
@@ -148,19 +153,20 @@ void powerSubsystem(void* data)
     printf("solar panel state is %i\n", *psData->solarPanelStatePtr);
     printf("nCalls %i\n\n", nCalls);
     nCalls++; // increment the call counter
+    psData->lastTimeRun = now();
 }
 
 
-int main(void){
-    int i;
-    struct PowerSubsystemData psData;
-    struct PowerSubsystemData* psDataPtr;
-    psData = getPSData();
-    psDataPtr = &psData;
-    for(i=0; i<100; i++){
-        powerSubsystem(psDataPtr);
-    }
-}
+// int main(void){
+//     int i;
+//     struct PowerSubsystemStruct psData;
+//     struct PowerSubsystemStruct* psDataPtr;
+//     psData = getPSData();
+//     psDataPtr = &psData;
+//     for(i=0; i<100; i++){
+//         powerSubsystem(psDataPtr);
+//     }
+// }
 
 
 

@@ -5,56 +5,57 @@
 #include <time.h>
 #include <unistd.h>
 #include "bool.h"
+#include "satellite.h"
 
 // Global Vars (defined in globalVars.c)
-extern unsigned short BATTERY_LVL;
-extern unsigned short FUEL_LVL;
-extern unsigned short PWR_CONSUMPTION;
-extern unsigned short PWR_GENERATION;
-extern Bool SOLAR_PANEL_STATE;
-extern Bool FUEL_LOW;
-extern Bool BATTERY_LOW;
-extern unsigned int THRUST_CMD;
+// extern unsigned short BATTERY_LVL;
+// extern unsigned short FUEL_LVL;
+// extern unsigned short PWR_CONSUMPTION;
+// extern unsigned short PWR_GENERATION;
+// extern Bool SOLAR_PANEL_STATE;
+// extern Bool FUEL_LOW;
+// extern Bool BATTERY_LOW;
+// extern unsigned int THRUST_CMD;
 
-// data structure
-struct SatelliteCommsData
-{
-    unsigned short* batteryLvlPtr;
-    unsigned short* pwrConsumptionPtr;
-    unsigned short* pwrGenerationPtr;
-    unsigned short* fuelLvlPtr;
-    Bool* solarPanelStatePtr;
-    Bool* fuelLowPtr;
-    Bool* batteryLowPtr;
-    unsigned int* thrustCmdPtr;
-};
+// // data structure
+// struct SatelliteCommsStruct
+// {
+//     unsigned short* batteryLvlPtr;
+//     unsigned short* pwrConsumptionPtr;
+//     unsigned short* pwrGenerationPtr;
+//     unsigned short* fuelLvlPtr;
+//     Bool* solarPanelStatePtr;
+//     Bool* fuelLowPtr;
+//     Bool* batteryLowPtr;
+//     unsigned int* thrustCmdPtr;
+// };
 
 // ----------------- functions ---------------//
 
 
 // initialize the SC data struct
-struct SatelliteCommsData getSCData(){
-    struct SatelliteCommsData scData;
-    scData.batteryLvlPtr = &BATTERY_LVL;
-    scData.pwrConsumptionPtr = &PWR_CONSUMPTION;
-    scData.pwrGenerationPtr = &PWR_GENERATION;
-    scData.fuelLvlPtr = &FUEL_LVL;
-    scData.solarPanelStatePtr = &SOLAR_PANEL_STATE;
-    scData.fuelLowPtr = &FUEL_LOW;
-    scData.batteryLowPtr = &BATTERY_LOW;
-    scData.thrustCmdPtr = &THRUST_CMD;
-    return scData;
-}
+// struct SatelliteCommsStruct getSCData(){
+//     struct SatelliteCommsStruct scData;
+//     scData.batteryLvlPtr = &BATTERY_LVL;
+//     scData.pwrConsumptionPtr = &PWR_CONSUMPTION;
+//     scData.pwrGenerationPtr = &PWR_GENERATION;
+//     scData.fuelLvlPtr = &FUEL_LVL;
+//     scData.solarPanelStatePtr = &SOLAR_PANEL_STATE;
+//     scData.fuelLowPtr = &FUEL_LOW;
+//     scData.batteryLowPtr = &BATTERY_LOW;
+//     scData.thrustCmdPtr = &THRUST_CMD;
+//     return scData;
+// }
 
 // return time now in seconds
-double timeNow()
-{
-    return (double)clock()/(double)CLOCKS_PER_SEC;
-}
+// double now()
+// {
+//     return (double)clock()/(double)CLOCKS_PER_SEC;
+// }
 
 // update the logfile with the current state of the system
 // emulating communication to earth
-void updateLog(struct SatelliteCommsData* scData)
+void updateLog(struct SatelliteCommsStruct* scData)
 {
     FILE *logfile;
     logfile = fopen("/home/debian/satellite2earth.log", "a+");
@@ -62,7 +63,7 @@ void updateLog(struct SatelliteCommsData* scData)
     (
         logfile,
         "%f, %i, %i, %i, %hu, %hu, %hu, %hu\n",
-        timeNow(), *scData->fuelLowPtr, *scData->batteryLowPtr,
+        now(), *scData->fuelLowPtr, *scData->batteryLowPtr,
         *scData->solarPanelStatePtr, *scData->batteryLvlPtr, *scData->fuelLvlPtr,
         *scData->pwrConsumptionPtr, *scData->pwrGenerationPtr
     );
@@ -70,7 +71,7 @@ void updateLog(struct SatelliteCommsData* scData)
 }
 
 //read in a thrust command, set it in the data structure
-void updateThrustCommand(struct SatelliteCommsData* scData)
+void updateThrustCommand(struct SatelliteCommsStruct* scData)
 {
     //look for a hex command in /home/debian/earth2satellite
     // if present read it, and set it on the scData struct
@@ -94,11 +95,15 @@ void updateThrustCommand(struct SatelliteCommsData* scData)
 
 // ------------- task --------------------//
 
-void satelliteComms(void* data)
+void satelliteCommsTask(void* data)
 {
     //@todo: decide whether or not to run based on scheduler
 
-    struct SatelliteCommsData* scData = (struct SatelliteCommsData*) data;
+    struct SatelliteCommsStruct* scData = (struct SatelliteCommsStruct*) data;
+
+    if (doRun(scData->interval, scData->lastTimeRun) == FALSE)
+        return;
+
     updateLog(scData);
     updateThrustCommand(scData);
     printf("power consumption level is %hu\n", *scData->pwrConsumptionPtr);
@@ -106,30 +111,31 @@ void satelliteComms(void* data)
     printf("battery level is %hu\n", *scData->batteryLvlPtr);
     printf("solar panel state is %i\n", *scData->solarPanelStatePtr);
     printf("thrustCmd is %i\n", *scData->thrustCmdPtr);
+    scData->lastTimeRun = now();
 }
 
-int main(void){
-    int i;
-    double t1, t2;
-    struct SatelliteCommsData scData;
-    // initialize log file and print headers!
-    FILE *logfile;
-    logfile = fopen("/home/debian/satellite2earth.log", "w");
-    fprintf(logfile, "#timestamp, Fuel Low, Battery Low, Solar Panel, Battery Level, Fuel Level, Power Consumption, Power Generation\n");
-    fclose(logfile);
-    scData = getSCData();
-    for (i=0;i<20;i++)
-    {
-        if(5==i){
-            *(scData.fuelLowPtr) = TRUE;
-        }
-        satelliteComms(&scData);
-        t1 = timeNow();
-        t2 = timeNow();
-        while(t2-t1<0.2)
-        {
-            // force a time delay
-            t2=timeNow();
-        }
-    }
-}
+// int main(void){
+//     int i;
+//     double t1, t2;
+//     struct SatelliteCommsStruct scData;
+//     // initialize log file and print headers!
+//     FILE *logfile;
+//     logfile = fopen("/home/debian/satellite2earth.log", "w");
+//     fprintf(logfile, "#timestamp, Fuel Low, Battery Low, Solar Panel, Battery Level, Fuel Level, Power Consumption, Power Generation\n");
+//     fclose(logfile);
+//     scData = getSCData();
+//     for (i=0;i<20;i++)
+//     {
+//         if(5==i){
+//             *(scData.fuelLowPtr) = TRUE;
+//         }
+//         satelliteComms(&scData);
+//         t1 = now();
+//         t2 = now();
+//         while(t2-t1<0.2)
+//         {
+//             // force a time delay
+//             t2=now();
+//         }
+//     }
+// }
