@@ -115,7 +115,7 @@ int main() {
     Bool FUEL_LOW = FALSE;
     Bool BATTERY_LOW = FALSE;
 
-    struct WarningStruct testData = {now() - 5, 0., &FUEL_LOW, &BATTERY_LOW, &FUEL_LVL, &BATTERY_LVL};
+    struct WarningStruct testData = {now() - 5., 0, &FUEL_LOW, &BATTERY_LOW, &FUEL_LVL, &BATTERY_LVL};
 
     turnAllOff();
 
@@ -131,7 +131,6 @@ int main() {
         printf("Battery level: %d\n", *testData.batteryLevel);
 
         warningAlarmTask(&testData);
-
         usleep(1000000);
 
     }
