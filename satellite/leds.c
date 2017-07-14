@@ -2,18 +2,23 @@
 //
 // Conor Sayres and José Sánchez-Gallego
 
-#include "bool.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
+#include "bool.h"
+#include "leds.h"
 
+
+// Base path to the BeagleBone LED directory. The first substitution is an
+// integer from 0 to 3 indicating the LED to use. The second substitution is
+// the file to which to write.
 const char basePath[100] = "/sys/class/leds/beaglebone:green:usr%d/%s";
 
 
 void writeToFile(char * path, char * text) {
+    // Writes some text to a file.
 
     FILE *ff = fopen(path, "w");
 
@@ -31,6 +36,9 @@ void writeToFile(char * path, char * text) {
 
 void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
             unsigned int delay_off) {
+    // Sets a LED with ledID to an on or off state. If delay_on or delay_off
+    // are non-zero, sets the LED to blick on that interval.
+    // See http://robotic-controls.com/learn/beaglebone/beaglebone-black-built-leds
 
     char path[300];
     char delay[20];
@@ -74,6 +82,26 @@ void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
     }
 
 }
+
+
+void turnOnLED(unsigned short ledID) {
+    // Turns a LED on
+    setLED(ledID, TRUE, 0, 0);
+}
+
+
+void turnOffLED(unsigned short ledID) {
+    // Turns a LED off
+    setLED(ledID, FALSE, 0, 0);
+}
+
+
+void flashLED(unsigned short ledID, unsigned int delay_on,
+              unsigned int delay_off) {
+    // Flashes a LED with interval on delay_on and off delay_off.
+    setLED(ledID, TRUE, delay_on, delay_off);
+}
+
 
 
 int main() {
