@@ -17,5 +17,6 @@ void turnOffLED(unsigned short ledID);
 
 void flashLED(unsigned short ledID, unsigned int delay_on,
               unsigned int delay_off);
+void turnAllOff();
 
 #endif

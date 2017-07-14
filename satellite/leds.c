@@ -103,8 +103,19 @@ void flashLED(unsigned short ledID, unsigned int delay_on,
 }
 
 
+void turnAllOff(){
+    // Turns off all LEDs
 
-int main() {
+    int ii;
+
+    for (ii=0; ii<=3; ii++) {
+        turnOffLED(ii);
+    }
+
+}
+
+
+int leds_main() {
 
     unsigned short ii;
 
@@ -118,5 +129,7 @@ int main() {
         setLED(ii, TRUE, ii * 1000, ii * 1000);
         usleep(1000000);
     }
+
+    return 0;
 
 }
