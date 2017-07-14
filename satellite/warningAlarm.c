@@ -109,7 +109,7 @@ void warningAlarmTask(void * data) {
 }
 
 
-int main() {
+int warning_main() {
 
     unsigned short BATTERY_LVL = 100;
     unsigned short FUEL_LVL = 100;
