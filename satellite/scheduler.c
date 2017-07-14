@@ -21,12 +21,12 @@ int main(int argc, char * argv[]) {
     unsigned short PWR_CONSUMPTION = 0;
     unsigned short PWR_GENERATION = 0;
 
+    Bool SOLAR_PANEL_STATE = TRUE;
+    Bool FUEL_LOW = TRUE;
+    Bool BATTERY_LOW = TRUE;
+
     // Turns off all the LEDs at the beginning
     turnAllOff();
-
-    Bool SOLAR_PANEL_STATE = FALSE;
-    Bool FUEL_LOW = FALSE;
-    Bool BATTERY_LOW = FALSE;
 
     struct TCB * tasks[6];
     int n_tasks = sizeof(tasks) / sizeof(tasks[0]);
@@ -57,15 +57,17 @@ int main(int argc, char * argv[]) {
 
             if (tasks[ii]) {
                 task = tasks[ii];
-                // (*task->myTask)(task->taskDataPtr);
+                (*task->myTask)(task->taskDataPtr);
             }
 
         }
 
         usleep(50000);
 
-        if ((argc > 1) & strcmp(argv[1], "--test")) {
-            printf("hey, a test\n");
+        if (argc > 1){
+            if (strcmp(argv[1], "--test")) {
+                printf("Potential test mode.");
+            }
         }
 
     };
