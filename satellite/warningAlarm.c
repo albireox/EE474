@@ -26,7 +26,7 @@ void applyNewLEDs(int leds){
     if (leds & led1_2)
         flashLED(0, 2000, 2000);
 
-    if (leds & (led1_1 & led1_2))
+    if (leds & ~(led1_1 | led1_2))
         turnOffLED(0);
 
     if (leds & led2_1)
@@ -35,7 +35,7 @@ void applyNewLEDs(int leds){
     if (leds & led2_2)
         flashLED(1, 2000, 2000);
 
-    if (leds & (led2_1 & led2_2))
+    if (leds & ~(led2_1 | led2_2))
         turnOffLED(1);
 
     if (leds & led3)
