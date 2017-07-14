@@ -15,6 +15,7 @@
 int main(int argc, char * argv[]) {
 
     static FILE *fp;
+    double t2, t1;
 
     double longInterval = 5; //seconds
     double shortInterval = 0.01; //seconds
@@ -74,10 +75,13 @@ int main(int argc, char * argv[]) {
                     fp = fopen("/sys/class/gpio/gpio61/value", "w");
                     fprintf(fp, "1");
                     fclose(fp);
+                    t1 = now();
                 }
                 (*task->myTask)(task->taskDataPtr);
                 if(2==ii)
                 {
+                    t2 = now();
+                    printf("task time: %f", (t2-t1)*1e6);
                     fp = fopen("/sys/class/gpio/gpio61/value", "w");
                     fprintf(fp, "0");
                     fclose(fp);
