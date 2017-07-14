@@ -4,17 +4,19 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "bool.h"
 #include "satellite.h"
+#include "leds.h"
 
 #include <ncurses.h>
 
 
-int main() {
+int main(int argc, char * argv[]) {
 
     double longInterval = 5; //seconds
-    double shortInterval = 0.005; //seconds
+    double shortInterval = 0.01; //seconds
 
     unsigned int THRUST_CMD = 0;
     unsigned short BATTERY_LVL = 100;
@@ -25,6 +27,8 @@ int main() {
     Bool FUEL_LOW = FALSE;
     Bool BATTERY_LOW = FALSE;
 
+    // Turns off all the LEDs at the beginning
+    turnAllOff();
 
     struct TCB * tasks[6];
     int n_tasks = sizeof(tasks) / sizeof(tasks[0]);
@@ -41,12 +45,16 @@ int main() {
     struct WarningStruct warningData = {0., shortInterval, &FUEL_LOW, &BATTERY_LOW, &FUEL_LVL, &BATTERY_LVL};
     struct TCB warningTaskTCB = {warningAlarmTask, &warningData};
 
+    struct ConsoleStruct consoleData = {0., shortInterval, &FUEL_LOW, &BATTERY_LOW, &FUEL_LVL, &BATTERY_LVL,
+                                        &SOLAR_PANEL_STATE, &PWR_CONSUMPTION, &PWR_GENERATION};
+    struct TCB consoleTaskTCB = {consoleTask, &consoleData};
+
     tasks[0] = &powerSubsystemTaskTCB;
     tasks[1] = &thrusterSubsystemTaskTCB;
     tasks[2] = &satelliteCommsTaskTCB;
     tasks[3] = NULL;
     tasks[4] = &warningTaskTCB;
-    tasks[5] = NULL;
+    tasks[5] = &consoleTaskTCB;
 
     int ii;
     struct TCB * task;
@@ -63,6 +71,14 @@ int main() {
                 (*task->myTask)(task->taskDataPtr);
             }
 
+        }
+
+        usleep(50000);
+
+        if (argc > 1){
+            if (strcmp(argv[1], "--test")) {
+                printf("Potential test mode.");
+            }
         }
 
     };

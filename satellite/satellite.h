@@ -61,6 +61,19 @@ struct ThrusterSubsystemStruct {
     unsigned int* thrustCmdPtr;
 };
 
+
+struct ConsoleStruct {
+    double lastTimeRun;
+    float interval;
+    Bool * fuelLow;
+    Bool * batteryLow;
+    unsigned short * fuelLevel;
+    unsigned short * batteryLevel;
+    Bool * solarPanelState;
+    unsigned short * powerConsumption;
+    unsigned short * powerGeneration;
+};
+
 struct PowerSubsystemStruct {
     double lastTimeRun;
     float interval;
@@ -71,6 +84,8 @@ struct PowerSubsystemStruct {
 };
 
 // Task function prototypes
+void warningAlarmTask(void * data);
+void consoleTask(void * data);
 void warningAlarmTask(void * data);
 void satelliteCommsTask(void* data);
 void thrusterSubsystemTask(void* data);
