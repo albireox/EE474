@@ -255,8 +255,8 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemData* tsData)
             fuelLevel -= fuelUsed;
             // cast the new level to an unsigned short and update
             *tsData->fuelLvlPtr = (unsigned short)fuelLevel;
-            printf("fuel double: %f\n", fuelLevel);
-            printf("fuel short: %hu\n", *tsData->fuelLvlPtr);
+            // printf("fuel double: %f\n", fuelLevel);
+            // printf("fuel short: %hu\n", *tsData->fuelLvlPtr);
         }
         // uninitialized, first time we've been called
         // set things up for the next call
@@ -361,22 +361,35 @@ void thrusterSubsystem(void* data)
 int main(void)
 {
     toggleGPIO(); // initialize all gpio
+    static FILE *fp1;
     unsigned tCmd;
     int intTCmd;
     // tCmd = 0x111; // 1sec 0.0625 mag, down
-    tCmd = 0x383; //0.5 mag, down up, 3sec
+    //tCmd = 0x383; //0.5 mag, down up, 3sec
+    tCmd = 0x8081;
     intTCmd = (int)tCmd;
     THRUST_CMD = intTCmd;
     struct ThrusterSubsystemData tsData = getTSData();
     thrusterSubsystem(&tsData);
-    double t1, t2;
+    double t1, t2, t3, t4;
     t1 = timeNow();
     t2 = timeNow();
     thrusterSubsystem(&tsData);
-    while(t2-t1<3.01)
+    while(t2-t1<100.01)
     {
         t2=timeNow();
+        fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
+        fprintf(fp1, "1");
+        fclose(fp1);
         thrusterSubsystem(&tsData);
+        fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
+        fprintf(fp1, "0");
+        fclose(fp1);
+        t3 = timeNow();
+        t4 = timeNow();
+        // while(t4-t3<0.0001){
+        //     t4=timeNow();
+        // }
     }
 
     // tCmd = 0x113; // 1sec 0.625 mag, down, up
