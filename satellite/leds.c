@@ -33,6 +33,7 @@ void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
             unsigned int delay_off) {
 
     char path[300];
+    char delay[20];
 
     if (on == FALSE) {
 
@@ -52,6 +53,22 @@ void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
             sprintf(path, basePath, ledID, "brightness");
             writeToFile(path, "255");
 
+        } else {
+
+            sprintf(path, basePath, ledID, "trigger");
+            writeToFile(path, "timer");
+
+            sprintf(path, basePath, ledID, "brightness");
+            writeToFile(path, "255");
+
+            sprintf(path, basePath, ledID, "delay_on");
+            sprintf(delay, "%d", delay_on);
+            writeToFile(path, delay);
+
+            sprintf(path, basePath, ledID, "delay_off");
+            sprintf(delay, "%d", delay_off);
+            writeToFile(path, delay);
+
         }
 
     }
@@ -70,7 +87,7 @@ int main() {
     usleep(3000000);
 
     for (ii=0; ii < 4; ii++){
-        setLED(ii, TRUE, 0, 0);
+        setLED(ii, TRUE, ii * 1000, ii * 1000);
         usleep(1000000);
     }
 
