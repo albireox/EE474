@@ -3,6 +3,7 @@
 // Conor Sayres and José Sánchez-Gallego
 
 #include <stdio.h>
+#include <unistd.h>
 #include <time.h>
 
 #include "bool.h"
@@ -114,8 +115,23 @@ int main() {
     Bool FUEL_LOW = FALSE;
     Bool BATTERY_LOW = FALSE;
 
-    struct WarningStruct testData = {now() - 5, 1., &FUEL_LOW, &BATTERY_LOW, &FUEL_LVL, &BATTERY_LVL};
+    struct WarningStruct testData = {now() - 5, 0., &FUEL_LOW, &BATTERY_LOW, &FUEL_LVL, &BATTERY_LVL};
 
-    warningAlarmTask(&testData);
+    while (TRUE) {
+
+        if (*testData.fuelLevel > 0)
+            *testData.fuelLevel -= 2;
+
+        if (*testData.batteryLevel > 0)
+            *testData.batteryLevel -= 5;
+
+        printf("\nFuel level: %d\n", *testData.fuelLevel);
+        printf("Battery level: %d\n", *testData.batteryLevel);
+
+        warningAlarmTask(&testData);
+
+        usleep(1000000);
+
+    }
 
 }
