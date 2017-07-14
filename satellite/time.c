@@ -10,10 +10,13 @@
 double now() {
     // Returns the current execution time.
 
-    clock_t tt = clock();
+    struct timespec spec;
 
-    return (double) (tt / CLOCKS_PER_SEC);
-
+    clock_gettime(CLOCK_MONOTONIC, &spec);
+    // clock_t tt = clock();
+    //
+    // return (double) (tt / CLOCKS_PER_SEC);
+    return (double) (spec.tv_sec + spec.tv_nsec / 1e9);
 }
 
 
