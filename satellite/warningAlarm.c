@@ -98,6 +98,7 @@ void warningAlarmTask(void * data) {
 
     if (leds != new_leds){
         applyNewLEDs(new_leds);
+        leds = new_leds;
 
     }
 
