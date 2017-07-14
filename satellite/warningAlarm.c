@@ -117,6 +117,8 @@ int main() {
 
     struct WarningStruct testData = {now() - 5, 0., &FUEL_LOW, &BATTERY_LOW, &FUEL_LVL, &BATTERY_LVL};
 
+    turnAllOff();
+
     while (TRUE) {
 
         if (*testData.fuelLevel > 0)
