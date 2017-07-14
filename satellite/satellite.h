@@ -41,9 +41,22 @@ struct WarningStruct {
     unsigned short * batteryLevel;
 };
 
+struct ConsoleStruct {
+    double lastTimeRun;
+    float interval;
+    Bool * fuelLow;
+    Bool * batteryLow;
+    unsigned short * fuelLevel;
+    unsigned short * batteryLevel;
+    Bool * solarPanelState;
+    unsigned short * powerConsumption;
+    unsigned short * powerGeneration;
+};
+
 
 // Task function prototypes
 void warningAlarmTask(void * data);
+void consoleTask(void * data);
 
 
 // General function prototypes

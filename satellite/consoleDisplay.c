@@ -2,6 +2,9 @@
 //
 // Conor Sayres and José Sánchez-Gallego
 
+#include "bool.h"
+#include "satellite.h"
+
 #include <ncurses.h>
 
 
@@ -25,5 +28,15 @@ void printWindow(unsigned int leds){
 
         touchwin(win);
         wrefresh(win);
+
+}
+
+
+void consoleTask(void * data) {
+
+    struct ConsoleStruct* consoleData = (struct ConsoleStruct *) data;
+
+    if (doRun(consoleData->interval, consoleData->lastTimeRun) == FALSE)
+        return;
 
 }
