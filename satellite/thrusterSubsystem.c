@@ -259,8 +259,6 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemStruct* tsData)
             // printf("fuel double: %f\n", fuelLevel);
             // printf("fuel short: %hu\n", *tsData->fuelLvlPtr);
         }
-        // uninitialized, first time we've been called
-        // set things up for the next call
         lastImpulseOn = impulseOn;
         tLast = tNow;
     }
@@ -270,16 +268,13 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemStruct* tsData)
 
 void thrusterSubsystemTask(void* data)
 {
-    //@todo: decide whether or not to run based on scheduler
-
     // cast input to correct type
     struct ThrusterSubsystemStruct* tsData = (struct ThrusterSubsystemStruct*) data;
+    // created once, persists, update this struct as new commands come in
+    static struct ThrusterCommand thrusterCommand;
 
     if (doRun(tsData->interval, tsData->lastTimeRun) == FALSE)
         return;
-
-    // created once, persists, update this struct as new commands come in
-    static struct ThrusterCommand thrusterCommand;
 
     // @todo, use an array of pointers for gpios?
 

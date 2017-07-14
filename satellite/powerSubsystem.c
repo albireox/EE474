@@ -77,6 +77,8 @@ void updatePowerGeneration(int nCalls, struct PowerSubsystemStruct* psData)
             // battery is greater than 95%, retract solar panel
             // issue command?
             *psData->solarPanelStatePtr = FALSE;
+            // reset power generation to zero
+            *psData->pwrGenerationPtr = 0;
         }
         else
         {
@@ -122,9 +124,14 @@ void updateBatteryLevel(struct PowerSubsystemStruct* psData)
         // solar panel not deployed
        newBatteryLvl = currentBatteryLvl -3 * (*psData->pwrConsumptionPtr);
     }
+    // confine battery to 0-100%!!!
     if (newBatteryLvl < 0)
     {
         newBatteryLvl = 0;
+    }
+    if (newBatteryLvl > 100)
+    {
+        newBatteryLvl = 100;
     }
     *psData->batteryLvlPtr = (unsigned short) newBatteryLvl; // recast to correct type
 }
