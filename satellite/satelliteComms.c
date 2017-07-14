@@ -82,7 +82,7 @@ void updateThrustCommand(struct SatelliteCommsStruct* scData)
     {
         thrustCmdFile = fopen("/home/debian/earth2satellite", "r");
         fscanf(thrustCmdFile, "%i", &thrustCmd);
-        printf("thrustcmd %i\n", thrustCmd);
+        // printf("thrustcmd %i\n", thrustCmd);
         fclose(thrustCmdFile);
         // remove the file now we have read it
         remove("/home/debian/earth2satellite");
@@ -106,11 +106,11 @@ void satelliteCommsTask(void* data)
 
     updateLog(scData);
     updateThrustCommand(scData);
-    printf("power consumption level is %hu\n", *scData->pwrConsumptionPtr);
-    printf("power generation level is %hu\n", *scData->pwrGenerationPtr);
-    printf("battery level is %hu\n", *scData->batteryLvlPtr);
-    printf("solar panel state is %i\n", *scData->solarPanelStatePtr);
-    printf("thrustCmd is %i\n", *scData->thrustCmdPtr);
+    // printf("power consumption level is %hu\n", *scData->pwrConsumptionPtr);
+    // printf("power generation level is %hu\n", *scData->pwrGenerationPtr);
+    // printf("battery level is %hu\n", *scData->batteryLvlPtr);
+    // printf("solar panel state is %i\n", *scData->solarPanelStatePtr);
+    // printf("thrustCmd is %i\n", *scData->thrustCmdPtr);
     scData->lastTimeRun = now();
 }
 

@@ -147,11 +147,11 @@ void powerSubsystemTask(void* data)
     updatePowerConsumption(nCalls, psData);
     updateBatteryLevel(psData);
     updatePowerGeneration(nCalls, psData);
-    printf("power consumption level is %hu\n", *psData->pwrConsumptionPtr);
-    printf("power generation level is %hu\n", *psData->pwrGenerationPtr);
-    printf("battery level is %hu\n", *psData->batteryLvlPtr);
-    printf("solar panel state is %i\n", *psData->solarPanelStatePtr);
-    printf("nCalls %i\n\n", nCalls);
+    // printf("power consumption level is %hu\n", *psData->pwrConsumptionPtr);
+    // printf("power generation level is %hu\n", *psData->pwrGenerationPtr);
+    // printf("battery level is %hu\n", *psData->batteryLvlPtr);
+    // printf("solar panel state is %i\n", *psData->solarPanelStatePtr);
+    // printf("nCalls %i\n\n", nCalls);
     nCalls++; // increment the call counter
     psData->lastTimeRun = now();
 }

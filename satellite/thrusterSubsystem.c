@@ -24,10 +24,10 @@
 
 // gpio ports:
 // down = 66, up = 67, right = 68, left = 69
-#define GPIO_DOWN 66
-#define GPIO_UP 67
-#define GPIO_RIGHT 68
-#define GPIO_LEFT 69
+// #define GPIO_DOWN 66
+// #define GPIO_UP 67
+// #define GPIO_RIGHT 68
+// #define GPIO_LEFT 69
 // gpio initial states:
 
 // gpio state flags for each thruster
@@ -154,7 +154,7 @@ void toggleGPIO()
     // down gpio
     if (lastGpioFlagDown != gpioFlagDown)
     {
-        printf("setting down flag to %i\n", gpioFlagDown);
+        // printf("setting down flag to %i\n", gpioFlagDown);
         lastGpioFlagDown = gpioFlagDown;
         fp = fopen("/sys/class/gpio/gpio66/value", "w");
         if (1 == gpioFlagDown)
@@ -290,19 +290,19 @@ void thrusterSubsystemTask(void* data)
     // if so overwrite the previous command
     // even if it has not finished!!!!
     if(*tsData->thrustCmdPtr){
-        printf("got new thruster command\n");
+        // printf("got new thruster command\n");
         decodeThrusterCommand(*tsData->thrustCmdPtr, &thrusterCommand);
         // Null the pointer (to be populated by sattelite comms)
         *tsData->thrustCmdPtr =  0;
-        printf("decoded thruster command:\n");
-        printf("-----------------------\n");
-        printf("thrust down %i\n", thrusterCommand.downOn);
-        printf("thrust up %i\n", thrusterCommand.upOn);
-        printf("thrust left %i\n", thrusterCommand.leftOn);
-        printf("thrust right %i\n", thrusterCommand.rightOn);
-        printf("thrust mag %f\n", thrusterCommand.magnitude);
-        printf("thrust duration %i\n", thrusterCommand.duration);
-        printf("-----------------------\n");
+        // printf("decoded thruster command:\n");
+        // printf("-----------------------\n");
+        // printf("thrust down %i\n", thrusterCommand.downOn);
+        // printf("thrust up %i\n", thrusterCommand.upOn);
+        // printf("thrust left %i\n", thrusterCommand.leftOn);
+        // printf("thrust right %i\n", thrusterCommand.rightOn);
+        // printf("thrust mag %f\n", thrusterCommand.magnitude);
+        // printf("thrust duration %i\n", thrusterCommand.duration);
+        // printf("-----------------------\n");
     }
     // check whether the current command is still active
     if(!isActive(&thrusterCommand))
