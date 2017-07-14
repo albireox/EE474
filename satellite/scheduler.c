@@ -7,6 +7,7 @@
 
 #include "bool.h"
 #include "satellite.h"
+#include "leds.h"
 
 #include <ncurses.h>
 
@@ -19,10 +20,12 @@ int main() {
     // unsigned short PWR_CONSUMPTION = 0;
     // unsigned short PWR_GENERATION = 0;
 
+    // Turns off all the LEDs at the beginning
+    turnAllOff();
+
     // Bool SOLAR_PANEL_STATE = FALSE;
     Bool FUEL_LOW = FALSE;
     Bool BATTERY_LOW = FALSE;
-
 
     struct TCB * tasks[6];
     int n_tasks = sizeof(tasks) / sizeof(tasks[0]);
