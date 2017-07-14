@@ -12,8 +12,9 @@
 
 #include <ncurses.h>
 
-
 int main(int argc, char * argv[]) {
+
+    static FILE *fp;
 
     double longInterval = 5; //seconds
     double shortInterval = 0.01; //seconds
@@ -68,7 +69,19 @@ int main(int argc, char * argv[]) {
 
             if (tasks[ii]) {
                 task = tasks[ii];
+                if(2==ii)
+                {
+                    fp = fopen("/sys/class/gpio/gpio61/value", "w");
+                    fprintf(fp, "1");
+                    fclose(fp);
+                }
                 (*task->myTask)(task->taskDataPtr);
+                if(2==ii)
+                {
+                    fp = fopen("/sys/class/gpio/gpio61/value", "w");
+                    fprintf(fp, "0");
+                    fclose(fp);
+                }
             }
 
         }
