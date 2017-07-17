@@ -7,9 +7,11 @@
 
 #include "bool.h"
 
+
+// Prototypes for functions defined in leds.c
+
 void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
             unsigned int delay_off);
-
 
 void turnOnLED(unsigned short ledID);
 
