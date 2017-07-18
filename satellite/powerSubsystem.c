@@ -41,6 +41,7 @@ void updatePowerConsumption(int nCalls, struct PowerSubsystemStruct* psData)
 
 }
 
+// update the global power generation level
 void updatePowerGeneration(int nCalls, struct PowerSubsystemStruct* psData)
 {
     unsigned short currentPowerGeneration = *psData->pwrGenerationPtr;
@@ -85,6 +86,7 @@ void updatePowerGeneration(int nCalls, struct PowerSubsystemStruct* psData)
     }
 }
 
+// update the global battery level
 void updateBatteryLevel(struct PowerSubsystemStruct* psData)
 {
     int currentBatteryLvl = *psData->batteryLvlPtr;

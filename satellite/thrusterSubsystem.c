@@ -43,6 +43,8 @@ struct ThrusterCommand
 };
 
 
+// parse thrustCommandBits
+// populate the ThrusterCommand
 void decodeThrusterCommand(unsigned thrustCommandBits, struct ThrusterCommand* thrusterCommand)
 {
     // @todo, if thrustCommandBits is 0 raise error?
