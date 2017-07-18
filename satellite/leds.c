@@ -43,7 +43,7 @@ void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
     char path[300];
     char delay[20];
 
-    if (on == FALSE) {
+    if (on == FALSE) {  // Turns LED off.
 
         sprintf(path, basePath, ledID, "trigger");
         writeToFile(path, "none");
@@ -53,7 +53,7 @@ void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
 
     } else {
 
-        if (delay_on == 0 & delay_off == 0) {
+        if (delay_on == 0 & delay_off == 0) {  // Turns LED solid on.
 
             sprintf(path, basePath, ledID, "trigger");
             writeToFile(path, "none");
@@ -61,7 +61,7 @@ void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
             sprintf(path, basePath, ledID, "brightness");
             writeToFile(path, "255");
 
-        } else {
+        } else {  // Turns LED flashing.
 
             sprintf(path, basePath, ledID, "trigger");
             writeToFile(path, "timer");
@@ -83,6 +83,8 @@ void setLED(unsigned short ledID, Bool on, unsigned int delay_on,
 
 }
 
+
+// Some convenience functions to control LEDs.
 
 void turnOnLED(unsigned short ledID) {
     // Turns a LED on
@@ -116,6 +118,7 @@ void turnAllOff(){
 
 
 int leds_main() {
+    // Tests for LEDs.
 
     unsigned short ii;
 

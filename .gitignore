@@ -1,5 +1,5 @@
-**/Report
 **/build
 **/*.o
 **/*.out
 **/*.dSYM
+**/Report
