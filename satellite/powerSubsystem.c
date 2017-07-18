@@ -7,31 +7,6 @@
 #include "bool.h"
 #include "satellite.h"
 
-// Global Vars (defined in globalVars.c)
-// extern unsigned short BATTERY_LVL;
-// extern unsigned short PWR_CONSUMPTION;
-// extern unsigned short PWR_GENERATION;
-// extern Bool SOLAR_PANEL_STATE;
-
-// // data structure
-// struct PowerSubsystemStruct
-// {
-//     unsigned short* batteryLvlPtr;
-//     unsigned short* pwrConsumptionPtr;
-//     unsigned short* pwrGenerationPtr;
-//     Bool* solarPanelStatePtr;
-// };
-
-// initialize the PS data struct
-// struct PowerSubsystemStruct getPSData(){
-//     struct PowerSubsystemStruct psData;
-//     psData.batteryLvlPtr = &BATTERY_LVL;
-//     psData.pwrConsumptionPtr = &PWR_CONSUMPTION;
-//     psData.pwrGenerationPtr = &PWR_GENERATION;
-//     psData.solarPanelStatePtr = &SOLAR_PANEL_STATE;
-//     return psData;
-// }
-
 // Increment powerconsumption by 2 on even calls, decrement by 1 on odd
 // calls if
 void updatePowerConsumption(int nCalls, struct PowerSubsystemStruct* psData)
@@ -154,26 +129,10 @@ void powerSubsystemTask(void* data)
     updatePowerConsumption(nCalls, psData);
     updateBatteryLevel(psData);
     updatePowerGeneration(nCalls, psData);
-    // printf("power consumption level is %hu\n", *psData->pwrConsumptionPtr);
-    // printf("power generation level is %hu\n", *psData->pwrGenerationPtr);
-    // printf("battery level is %hu\n", *psData->batteryLvlPtr);
-    // printf("solar panel state is %i\n", *psData->solarPanelStatePtr);
-    // printf("nCalls %i\n\n", nCalls);
     nCalls++; // increment the call counter
     psData->lastTimeRun = now();
 }
 
-
-// int main(void){
-//     int i;
-//     struct PowerSubsystemStruct psData;
-//     struct PowerSubsystemStruct* psDataPtr;
-//     psData = getPSData();
-//     psDataPtr = &psData;
-//     for(i=0; i<100; i++){
-//         powerSubsystem(psDataPtr);
-//     }
-// }
 
 
 

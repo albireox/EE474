@@ -21,34 +21,12 @@
 // 0.01 seconds
 // #define MIN_PULSE_DURATION 0.0625;  // seconds
 
-
-// gpio ports:
-// down = 66, up = 67, right = 68, left = 69
-// #define GPIO_DOWN 66
-// #define GPIO_UP 67
-// #define GPIO_RIGHT 68
-// #define GPIO_LEFT 69
-// gpio initial states:
-
 // gpio state flags for each thruster
 // for on vs off, initialize all to off
 static int gpioFlagDown = 0;
 static int gpioFlagUp = 0;
 static int gpioFlagLeft = 0;
 static int gpioFlagRight = 0;
-
-// Global Vars (defined in globalVars.c)
-// extern unsigned short FUEL_LVL;
-// extern unsigned int THRUST_CMD;
-
-// -------- structures ---------------- //
-
-// data structure
-// struct ThrusterSubsystemStruct
-// {
-//     unsigned short* fuelLvlPtr;
-//     unsigned int* thrustCmdPtr;
-// };
 
 
 // structure for holding a decoded thrust command
@@ -64,32 +42,6 @@ struct ThrusterCommand
 
 };
 
-// -------- helper functions ---------------- //
-
-// return time now in seconds
-// double now()
-// {
-//     return (double)clock()/(double)CLOCKS_PER_SEC;
-// }
-
-// initialize the TS data struct
-// struct ThrusterSubsystemStruct getTSData(){
-//     struct ThrusterSubsystemStruct tsData;
-//     tsData.fuelLvlPtr = &FUEL_LVL;
-//     tsData.thrustCmdPtr = &THRUST_CMD;
-//     return tsData;
-// };
-
-// decode a thrust command
-// inputs: thrustCommandBits
-//              bits 3-0 correspond to which thruster(s)
-//              are commanded, left, right, up, down respectively
-//              bits 7-3 correspond to magnitude (as a percentage)
-//              bits 15-8 correspond to a duration in seconds (0-255)
-//              a thrust command == 0 is assumed to be a null command
-//          thrusterCommand: pointer to a ThrusterCommand instance (to be populated)
-// returns: void
-// modifies: thrusterCommand struct
 
 void decodeThrusterCommand(unsigned thrustCommandBits, struct ThrusterCommand* thrusterCommand)
 {
@@ -256,8 +208,6 @@ void updateFuelLevel(int impulseOn, struct ThrusterSubsystemStruct* tsData)
             fuelLevel -= fuelUsed;
             // cast the new level to an unsigned short and update
             *tsData->fuelLvlPtr = (unsigned short)fuelLevel;
-            // printf("fuel double: %f\n", fuelLevel);
-            // printf("fuel short: %hu\n", *tsData->fuelLvlPtr);
         }
         lastImpulseOn = impulseOn;
         tLast = tNow;
@@ -289,15 +239,6 @@ void thrusterSubsystemTask(void* data)
         decodeThrusterCommand(*tsData->thrustCmdPtr, &thrusterCommand);
         // Null the pointer (to be populated by sattelite comms)
         *tsData->thrustCmdPtr =  0;
-        // printf("decoded thruster command:\n");
-        // printf("-----------------------\n");
-        // printf("thrust down %i\n", thrusterCommand.downOn);
-        // printf("thrust up %i\n", thrusterCommand.upOn);
-        // printf("thrust left %i\n", thrusterCommand.leftOn);
-        // printf("thrust right %i\n", thrusterCommand.rightOn);
-        // printf("thrust mag %f\n", thrusterCommand.magnitude);
-        // printf("thrust duration %i\n", thrusterCommand.duration);
-        // printf("-----------------------\n");
     }
     // check whether the current command is still active
     if(!isActive(&thrusterCommand))
@@ -312,7 +253,6 @@ void thrusterSubsystemTask(void* data)
     }
     else
     {
-        // printf("current cmd is active!\n");
         // a thruster command is active, check timers and
         // update thruster signals
         // impluse period is 1 second decide how to toggle
@@ -344,169 +284,5 @@ void thrusterSubsystemTask(void* data)
     toggleGPIO(); // will only toggle if bit is flipped!
     updateFuelLevel(impulseOn, tsData);
     tsData->lastTimeRun = now();
-    // printf("time, gpios: %f %i %i %i %i\n", tElapsed, gpioFlagDown, gpioFlagUp, gpioFlagLeft, gpioFlagRight);
 }
 
-// int main(void)
-// {
-//     FILE *fp;
-//     fp = fopen("/sys/class/gpio/gpio64/value", "w");
-//     fprintf(fp, "1");
-//     fclose(fp);
-
-//     fp = fopen("/sys/class/gpio/gpio64/value", "r");
-
-// }
-
-// int main(void)
-// {
-//     toggleGPIO(); // initialize all gpio
-//     static FILE *fp1;
-//     unsigned tCmd;
-//     int intTCmd;
-//     // tCmd = 0x111; // 1sec 0.0625 mag, down
-//     //tCmd = 0x383; //0.5 mag, down up, 3sec
-//     tCmd = 0x8081;
-//     intTCmd = (int)tCmd;
-//     THRUST_CMD = intTCmd;
-//     struct ThrusterSubsystemStruct tsData = getTSData();
-//     thrusterSubsystem(&tsData);
-//     double t1, t2, t3, t4;
-//     t1 = now();
-//     t2 = now();
-//     thrusterSubsystem(&tsData);
-//     while(t2-t1<100.01)
-//     {
-//         t2=now();
-//         fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
-//         fprintf(fp1, "1");
-//         fclose(fp1);
-//         thrusterSubsystem(&tsData);
-//         fp1 = fopen("/sys/class/gpio/gpio61/value", "w");
-//         fprintf(fp1, "0");
-//         fclose(fp1);
-//         t3 = now();
-//         t4 = now();
-//         // while(t4-t3<0.0001){
-//         //     t4=now();
-//         // }
-//     }
-
-    // tCmd = 0x113; // 1sec 0.625 mag, down, up
-    // intTCmd = (int)tCmd;
-    // THRUST_CMD = intTCmd;
-    // thrusterSubsystem(&tsData);
-    // t1 = now();
-    // t2 = now();
-    // thrusterSubsystem(&tsData);
-    // while(t2-t1<1.01)
-    // {
-    //     t2=now();
-    //     thrusterSubsystem(&tsData);
-    // }
-// }
-
-
-// int main(void){
-//     double g = 1.95;
-//     int v = (int)g;
-//     double frac = g - v;
-//     printf("g: %f\n",g);
-//     printf("v: %i\n",v);
-//     printf("frac: %f\n", frac);
-// }
-
-// int main(void){
-//     unsigned thrustMag = 0x61;
-//     unsigned maxThrust = 0xf;
-//     int thrustExtracted = (int)((thrustMag>>4)&maxThrust);
-
-//     printf("hello %i\n", thrustExtracted);
-//     printf("fraction of max: %f\n", (double)thrustExtracted/16.0);
-
-// }
-
-// int main(void){
-//     unsigned bitSelect = 0x1;
-//     unsigned testBit1;
-//     int i;
-//     testBit1 = 0x1; // bit 0 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-//     testBit1 = 0x2; // bit 1 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-//     testBit1 = 0x3; // bit 0 and 1 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-//     testBit1 = 0x4; // bit 2 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-//     testBit1 = 0x5; // bit 2 and 0 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-//     testBit1 = 0x6; // bit 2,1 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-//     testBit1 = 0x7; // bit 2,1,0 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-//     testBit1 = 0x8; // bit 3 set
-//     for(i=0; i<5; i++)
-//     {
-//         if(testBit1 & (bitSelect << i)){
-//             printf("bit %i is set\n", i);
-//         }
-//     }
-//     printf("----------\n");
-
-// }
-
-// int main(void){
-//     double t1, t2;
-//     printf("clocks per sec %d\n", CLOCKS_PER_SEC);
-//     t1 = (double)clock()/CLOCKS_PER_SEC;
-//     t2 = (double)clock()/CLOCKS_PER_SEC;
-//     while(t2-t1<1)
-//     {
-//         t2 = (double)clock()/CLOCKS_PER_SEC;
-//     }
-//     printf("t1 %f\n", t1);
-//     printf("t2 %f\n", t2);
-//     printf("elapsed %f\n", t2-t1);
-// }
