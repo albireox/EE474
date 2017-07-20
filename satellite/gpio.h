@@ -11,11 +11,9 @@
 // Prototypes for functions defined in gpio.c
 
 void setThrustDown(int value);
-
 void setThrustUp(int value);
-
 void setThrustLeft(int value);
-
 void setThrustRight(int value);
+int getBatteryLevel();
 
 #endif

@@ -87,7 +87,7 @@ void updatePowerGeneration(int nCalls, struct PowerSubsystemStruct* psData)
 }
 
 // update the global battery level
-void updateBatteryLevel(struct PowerSubsystemStruct* psData)
+void updateBatteryLevelOrig(struct PowerSubsystemStruct* psData)
 {
     int currentBatteryLvl = *psData->batteryLvlPtr;
     int newBatteryLvl; // use signed ints to catch negative values
@@ -111,6 +111,11 @@ void updateBatteryLevel(struct PowerSubsystemStruct* psData)
         newBatteryLvl = 100;
     }
     *psData->batteryLvlPtr = (unsigned short) newBatteryLvl; // recast to correct type
+}
+
+void updateBatteryLevel(struct PowerSubsystemStruct* psData)
+{
+    *psData->batteryLvlPtr = getBatteryLevel();
 }
 
 // powerSubsystem task

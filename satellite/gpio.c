@@ -5,6 +5,7 @@
 // associated with auxiliary satellite hardware
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 // #include <stdio.h>
 // #include <time.h>
@@ -15,14 +16,35 @@
 #define THRUST_UP "/sys/class/gpio/gpio67/value"
 #define THRUST_RIGHT "/sys/class/gpio/gpio68/value"
 #define THRUST_LEFT "/sys/class/gpio/gpio69/value"
+#define BATTERY_LEVEL "/sys/devices/ocp.3/helper.15/AIN0"
 
-// gpio state flags for each thruster
-// for on vs off, initialize all to off
-static int gpioFlagDown = 0;
-static int gpioFlagUp = 0;
-static int gpioFlagLeft = 0;
-static int gpioFlagRight = 0;
+// int out = system("cat /sys/class/gpio/gpio69/value");
+// printf("%i\n", out);
 
+// check whether or not a file exists on disk
+// return 1 or 0
+int fileExists(char * filePath)
+{
+    if( access (filePath, F_OK) != -1)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+// read the contents of a file as an integer,
+// and return it
+int readInt(char * filePath)
+{
+    char sysCmd[80];
+    sprintf(sysCmd, "cat ");
+    strcat(sysCmd, filePath);  // cat the file, save output as int
+    int outInt = system(sysCmd);
+    return outInt
+}
 
 
 // create a file on disk containing 1 or 0
@@ -31,8 +53,6 @@ void genericSet(char * filePath, int value)
     char sysCmd[80];
     sprintf(sysCmd, "echo %i > ", value);
     strcat(sysCmd, filePath);
-    int out = system("cat /sys/class/gpio/gpio69/value");
-    printf("%i\n", out);
     system(sysCmd);
 }
 
@@ -75,3 +95,25 @@ void setThrustRight(int value)
         genericSet(THRUST_RIGHT, value);
     }
 }
+
+// return battery level 0-100
+// read from the adc
+// adc returns a value in millivolts
+// max is 1800, convert it to a percentage
+// return it as an unsigned short
+unsigned short getBatteryLevel()
+{
+    float mv = (float)readInt(BATTERY_LEVEL);
+    float percentage = mv / 1800.0 * 100.0;
+    if(percentage > 100.0)
+    {
+        percentage = 100.0
+    }
+    return (unsigned short)percentage;
+}
+
+
+
+
+
+
