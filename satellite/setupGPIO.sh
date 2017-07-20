@@ -9,3 +9,5 @@ echo out > /sys/class/gpio/gpio66/direction
 echo out > /sys/class/gpio/gpio67/direction
 echo out > /sys/class/gpio/gpio68/direction
 echo out > /sys/class/gpio/gpio69/direction
+echo cape-bone-iio > /sys/devices/bone_capemgr.*/slots
+find /sys/ -name '*AIN*'

@@ -1,5 +1,6 @@
 CC = gcc
 #CFLAGS = -Wall -Wextra -O2
+CFLAGS = -g
 
 DEPS = -lrt -lcurses
 
@@ -15,5 +16,5 @@ mkdir:
 clean:
 	rm -Rf $(ODIR)
 
-$(ODIR)/satellite: consoleDisplay.c powerSubsystem.c satelliteComms.c thrusterSubsystem.c time.c leds.c warningAlarm.c scheduler.c | mkdir
+$(ODIR)/satellite: consoleDisplay.c powerSubsystem.c satelliteComms.c thrusterSubsystem.c time.c leds.c gpio.c warningAlarm.c scheduler.c | mkdir
 	$(CC) -o $@ $^ $(CFLAGS) $(DEPS)

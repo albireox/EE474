@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "satellite.h"
+#include "gpio.h"
 
 // @todo keep track of timing errors for thrust duration(s)?
 
@@ -90,83 +91,15 @@ int isActive(struct ThrusterCommand* thrusterCommand)
 }
 
 // set gpio
-// but only set it if it is
-// different than the last time it was set!
-// eg, don't keep writing a high value if it's
-// already high
+// note, gpio functions will only set a
+// new value if it was different then
+// the previous
 void toggleGPIO()
 {
-    static FILE *fp;
-    // local vars for dectecting if the value
-    // has changed.  initialize to -1
-    // so that on first call they get set
-    // to initial values
-    static int lastGpioFlagDown = -1;
-    static int lastGpioFlagUp = -1;
-    static int lastGpioFlagLeft = -1;
-    static int lastGpioFlagRight = -1;
-    // down gpio
-    if (lastGpioFlagDown != gpioFlagDown)
-    {
-        // printf("setting down flag to %i\n", gpioFlagDown);
-        lastGpioFlagDown = gpioFlagDown;
-        fp = fopen("/sys/class/gpio/gpio66/value", "w");
-        if (1 == gpioFlagDown)
-        {
-            fprintf(fp, "1");
-        }
-        else
-        {
-            fprintf(fp, "0");
-        }
-        fclose(fp);
-    }
-    // up gpio
-    if (lastGpioFlagUp != gpioFlagUp)
-    {
-        lastGpioFlagUp = gpioFlagUp;
-        fp = fopen("/sys/class/gpio/gpio67/value", "w");
-        if (1 == gpioFlagUp)
-        {
-            fprintf(fp, "1");
-        }
-        else
-        {
-            fprintf(fp, "0");
-        }
-        fclose(fp);
-    }
-    // right gpio
-    if (lastGpioFlagRight != gpioFlagRight)
-    {
-        lastGpioFlagRight = gpioFlagRight;
-        fp = fopen("/sys/class/gpio/gpio68/value", "w");
-        if (1 == gpioFlagRight)
-        {
-            fprintf(fp, "1");
-        }
-        else
-        {
-            fprintf(fp, "0");
-        }
-        fclose(fp);
-    }
-    // left gpio
-    if (lastGpioFlagLeft != gpioFlagLeft)
-    {
-        lastGpioFlagLeft = gpioFlagLeft;
-        fp = fopen("/sys/class/gpio/gpio69/value", "w");
-        if (1 == gpioFlagLeft)
-        {
-            fprintf(fp, "1");
-        }
-        else
-        {
-            fprintf(fp, "0");
-        }
-        fclose(fp);
-    }
-    return;
+    setThrustDown(gpioFlagDown);
+    setThrustUp(gpioFlagUp);
+    setThrustLeft(gpioFlagLeft);
+    setThrustRight(gpioFlagRight);
 }
 
 //update the fuel level
