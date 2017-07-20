@@ -35,17 +35,15 @@ int fileExists(char * filePath)
     }
 }
 
-// read the contents of a file as an integer,
-// and return it
 int readInt(char * filePath)
 {
-    char sysCmd[80];
-    sprintf(sysCmd, "cat ");
-    strcat(sysCmd, filePath);  // cat the file, save output as int
-    int outInt = system(sysCmd);
-    return outInt
+    FILE *readFile;
+    int outInt;
+    readFile = fopen(filePath, "r");
+    fscanf(readFile, "%i", &outInt);
+    fclose(readFile);
+    return outInt;
 }
-
 
 // create a file on disk containing 1 or 0
 void genericSet(char * filePath, int value)
@@ -107,7 +105,11 @@ unsigned short getBatteryLevel()
     float percentage = mv / 1800.0 * 100.0;
     if(percentage > 100.0)
     {
-        percentage = 100.0
+        percentage = 100.0;
+    }
+    if(percentage < 0.0)
+    {
+        percentage = 0.0; // paranoia, but shouldn't ever read a negative value from adc
     }
     return (unsigned short)percentage;
 }
