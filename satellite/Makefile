@@ -16,5 +16,7 @@ mkdir:
 clean:
 	rm -Rf $(ODIR)
 
-$(ODIR)/satellite: consoleDisplay.c powerSubsystem.c satelliteComms.c thrusterSubsystem.c time.c leds.c gpio.c warningAlarm.c scheduler.c | mkdir
+$(ODIR)/satellite: consoleDisplay.c powerSubsystem.c satelliteComms.c thrusterSubsystem.c \
+	               vehicleComms.c consoleKeypad.c solarPanel.c time.c leds.c gpio.c \
+	               warningAlarm.c scheduler.c | mkdir
 	$(CC) -o $@ $^ $(CFLAGS) $(DEPS)

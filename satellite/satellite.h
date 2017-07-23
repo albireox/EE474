@@ -20,8 +20,16 @@ extern unsigned short PWR_CONSUMPTION;    // Power consumption
 extern unsigned short PWR_GENERATION;     // Power generation
 
 extern Bool SOLAR_PANEL_STATE;            // Solar panel state, TRUE means not deployed
+extern Bool SOLAR_PANEL_DEPLOY;
+extern Bool SOLAR_PANEL_RETRACT;
+extern Bool SOLAR_PANEL_SPEED_INC;
+extern Bool SOLAR_PANEL_SPEED_DEC;
 extern Bool FUEL_LOW;                     // Fuel low warning
 extern Bool BATTERY_LOW;                  // Battery low warning
+
+// vehicle comms globals
+extern char VEHICLE_COMMAND[3];
+extern char VEHICLE_RESPONSE[3];
 
 
 // TCB structure implementation
@@ -81,6 +89,32 @@ struct PowerSubsystemStruct {
     unsigned short* pwrConsumptionPtr;
     unsigned short* pwrGenerationPtr;
     Bool* solarPanelStatePtr;
+    Bool* solarPanelDeployPtr;
+    Bool* solarPanelRetractPtr;
+};
+
+struct SolarPanelStruct {
+    double lastTimeRun;
+    float interval;
+    Bool* solarPanelStatePtr;
+    Bool* solarPanelDeployPtr;
+    Bool* solarPanelRetractPtr;
+    Bool* solarPanelSpeedIncPtr;
+    Bool* solarPanelSpeedDecPtr;
+};
+
+struct VehicleCommsStruct {
+    double lastTimeRun;
+    float interval;
+    char* vehicleCommandPtr;
+    char* vehicleResponsePtr;
+};
+
+struct ConsoleKeypadStruct {
+    double lastTimeRun;
+    float interval;
+    Bool* solarPanelSpeedIncPtr;
+    Bool* solarPanelSpeedDecPtr;
 };
 
 // Task function prototypes
@@ -90,6 +124,9 @@ void warningAlarmTask(void * data);
 void satelliteCommsTask(void* data);
 void thrusterSubsystemTask(void* data);
 void powerSubsystemTask(void* data);
+void solarPanelTask(void* data);
+void vehicleCommsTask(void* data);
+void consoleKeypadTask(void* data);
 // General function prototypes
 
 // From time.c
